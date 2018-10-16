@@ -26,7 +26,7 @@
                         </li>
                         <li v-for="item in suggestions">
                             <a class="dropdown-item" @click="select(item)"
-                                v-html="boldenSuggestion(item[labelAttr])"></a>
+                                v-html="highlightMatch(item[labelAttr])"></a>
                         </li>
                     </div>
                 </div>
@@ -44,6 +44,9 @@ let RESULT_DATA = [
     { key: "DE", label: "Delaware" },
     { key: "FL", label: "Florida" },
     { key: "GA", label: "Georgia" },
+    { key: "HI", label: "Hawaii" },
+    { key: "IL", label: "Illinois" },
+    { key: "KY", label: "Kentucky" },
 ];
 
 export default {
@@ -81,9 +84,15 @@ export default {
   },
   computed: {
     placeholderValue: function() {
-        if ((this.suggestions.length > 0) && (this.textInput)) {
+        if (this.selectedItem) {
+            // hide the placeholder
+            return ''; 
+        }
+        else if ((this.suggestions.length > 0) && (this.textInput)) {
+            // match up with first in input box
             return this.letterProcess(this.suggestions[0]);
         } else if (this.textInput) {
+            // no suggestions shown, but something has been typed
             return '';
         } else {
             return this.placeHolder;
@@ -91,9 +100,6 @@ export default {
     }
   },
   methods: {
-      highlightMatch: function() {
-          // TODO: Implement this
-      },
       emitClickInput: function() {
           // TODO: implement this
       },
@@ -143,7 +149,7 @@ export default {
         // consider paging at some time
         return matches.splice(0, this.maxResults);
     },
-    boldenSuggestion(value) {
+    highlightMatch: function(value) {
         if (!value) return '-';
 
         let result = value;
@@ -165,8 +171,12 @@ export default {
           this.renderSuggestions = false;
       },
       select: function(item) {
-          this.textInput = item[this.labelAttr];
           this.selectedItem = item;
+
+          this.textInput = item[this.labelAttr];
+          // note: may want to recalculate this elsewhere
+          this.placeHolder = item[this.labelAttr];
+          
           this.hideSuggestions();
       },
       letterProcess (item) {
