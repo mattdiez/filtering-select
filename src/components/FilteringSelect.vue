@@ -186,6 +186,7 @@ export default {
     },
 	clearSelection: function() {
 		this.selectedItem = null;
+		this.$emit('select', null)
 	},
 	showSuggestions: function() {
 		this.renderSuggestions = true;
