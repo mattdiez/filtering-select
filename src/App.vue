@@ -1,17 +1,29 @@
 <template>
+  
   <div id="app">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.3/dist/css/bootstrap.min.css"/>
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+
+    <div class="container">
+      <div class="row">
+        <div class="form-group">
+          <label class="form-label">FilteringSelect Test</label>
+          <FilteringSelect name="zip" placeHolder="Override a placeHolder"/>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import FilteringSelect from './components/FilteringSelect.vue'
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    HelloWorld,
+    FilteringSelect
   }
 }
 </script>
