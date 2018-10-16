@@ -13,20 +13,23 @@
             <input :disabled="disabled" @click="emitClickInput" 
                 @keyup="keyUpListener" 
                 @focus="focusListener"
+                @blur="blurListener"
                 v-model="textInput" 
                 type="search" :name="name" placeholder="" 
                 autocomplete="off" required="required" 
                 class="form-control text-input" 
                 :autofocus="autofocus"/>
            
-                <div class="dropdown" v-bind:class="{ show : renderSuggestions}">
+			<div class="dropdown" v-bind:class="{ show : renderSuggestions}"
+					@mouseenter="hoverList(true)"
+					@mouseleave="hoverList(false)">
                     <div class="dropdown-menu" v-bind:class="{ show : renderSuggestions}" >
-                        <li v-if="suggestions.length === 0">
-                            <a class="dropdown-item">No results found</a>
-                        </li>
-                        <li v-for="item in suggestions">
-                            <a class="dropdown-item" @click="select(item)"
-                                v-html="highlightMatch(item[labelAttr])"></a>
+						<li v-if="suggestions.length === 0">
+							<a class="dropdown-item">No results found</a>
+						</li>
+						<li v-for="item in suggestions">
+							<a class="dropdown-item" @click="suggestionClick(item)"
+								v-html="highlightMatch(item[labelAttr])"></a>
                         </li>
                     </div>
                 </div>
@@ -61,6 +64,7 @@ export default {
         selectedItem: null,
         suggestions: [],
         renderSuggestions: false,
+        isOverList: false
       }
   }, 
   props: { // pass these in?
@@ -100,7 +104,7 @@ export default {
     }
   },
   methods: {
-      emitClickInput: function() {
+	emitClickInput: function() {
           // TODO: implement this
       },
       keyUpListener: function(event) {
@@ -113,6 +117,9 @@ export default {
                 // perhaps catch 'highlighted index' here instead
                 this.select(this.suggestions[0]);
             }
+        }
+        else if (event.code == 'Backspace') {
+        	this.clearSelection();
         }
         else {
           // TODO: get all with a method. page through these?
@@ -127,14 +134,18 @@ export default {
               this.showSuggestions();
           }
       },
-      /*
-      blurListener: function() {
-          this.hideSuggestions();
-          this.interactive = false;
-          if (!this.selectedItem) {
-              this.textInput = null;
-          }
-      }, */
+	hoverList (isOverList) {
+		this.isOverList = isOverList
+	},      
+	blurListener: function() {
+		if (!this.isOverList) {
+			this.hideSuggestions();
+			this.interactive = false;
+			if (!this.selectedItem) {
+				this.textInput = null;
+			}
+		}
+      }, 
       getSuggestions: function(queryText) {
         let matches = [];
         if (queryText) {
@@ -160,35 +171,37 @@ export default {
         const texts = query.split(/[\s-_/\\|\.]/gm).filter(t => !!t) || [''];
         return result.replace(new RegExp('(.*?)(' + texts.join('|') + ')(.*?)','gi'), '$1<b>$2</b>$3');
     },
-    clearSelection: function() {
-           this.selectedItem = null;
- 
-      },
-      showSuggestions: function() {
-          this.renderSuggestions = true;
-      },
-      hideSuggestions: function() {
-          this.renderSuggestions = false;
-      },
-      select: function(item) {
-          this.selectedItem = item;
+	clearSelection: function() {
+		this.selectedItem = null;
+	},
+	showSuggestions: function() {
+		this.renderSuggestions = true;
+	},
+	hideSuggestions: function() {
+		this.renderSuggestions = false;
+	},
+	suggestionClick: function(item) {
+		this.isOverList = false;
+      	this.select(item);
+	},
+	select: function(item) {
+		this.selectedItem = item;
 
-          this.textInput = item[this.labelAttr];
-          // note: may want to recalculate this elsewhere
-          this.placeHolder = item[this.labelAttr];
-          
-          this.hideSuggestions();
-      },
-      letterProcess (item) {
-        var remoteText = item[this.labelAttr].split('')
-        var inputText = this.textInput.split('')
-        inputText.forEach(function (letter, key) {
-          if (letter !== remoteText[key]) {
-            remoteText[key] = letter
-          }
-        })
-        return remoteText.join('')
-      },
+		this.textInput = item[this.labelAttr];
+		         
+		this.hideSuggestions();
+	},
+	letterProcess (item) {
+		var remoteText = item[this.labelAttr].split('')
+		var inputText = this.textInput.split('')
+		inputText.forEach(function (letter, key) {
+			if (letter !== remoteText[key]) {
+				remoteText[key] = letter
+			}
+    	})
+    	return remoteText.join('')
+	},
+      
       // implement debounce
       // implement async query (pass as arg?)
       // implement key navigation of results
@@ -198,6 +211,7 @@ export default {
       // test for form submit?
       // click off behavior (@blur or whatevr)
       // paging of results (keys?)
+      // template slot (!)
 
       // DONE
       // implement mouse select
