@@ -6,6 +6,9 @@
 
     <div class="container">
 
+	<div class="row">
+		<div>Selected Item: [{{selectValue}}]</div>
+	</div>
       <div class="row">
         <div class="form-group">
           <label class="form-label">FilteringSelect Test</label>
@@ -17,14 +20,9 @@
           		placeHolder="Override a placeHolder"
           		:list="myList"
           		v-model="selectValue"
+          		@select="selectHandler"
           		/>
-          		
-          <FilteringSelect 
-          		name="zip2" 
-          		placeHolder="Override a placeHolder"
-          		:list="getListFunction"
-          		v-model="zip2"
-          		/>          		
+          		        		
         </div>
       </div>
     </div>
@@ -79,6 +77,9 @@ export default {
   			//resolve(RESULT_DATA);
 			//});
 			return RESULT_DATA;
+		},
+		selectHandler(item) {
+			this.selectValue = item;
 		}
 	}
 }
