@@ -1,9 +1,7 @@
 <template>
     <div>        
-    	<div class="row">
-    		<!-- for debugging purposes -->
+        		<!-- for debugging purposes -->
 			<div>Selected Item: [{{selectedItem}}]</div>
-		</div>
         <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">
             <input 
                 type="search" 
@@ -18,7 +16,7 @@
                 @keyup="keyUpListener"                
                 @focus="focusListener"
                 @blur="blurListener"
-                v-model="textInput" 
+                v-model="textInput"
                 type="search" :name="name" placeholder="" 
                 autocomplete="off" required="required" 
                 class="form-control text-input" 
@@ -28,7 +26,10 @@
 					@mouseenter="hoverList(true)"
 					@mouseleave="hoverList(false)">
                     <div class="dropdown-menu" v-bind:class="{ show : renderSuggestions}" >
-						<li v-if="suggestions.length === 0">
+                    	<li v-if="loadingResponse">
+                    		<a class="dropdown-item">Loading...</a>
+                    	</li>
+						<li v-if="!loadingResponse && suggestions.length === 0">
 							<a class="dropdown-item">No results found</a>
 						</li>
 						<li v-for="suggestion in suggestions">
@@ -47,54 +48,49 @@
 </template>
 
 <script>
-let RESULT_DATA = [
-    { key: "AL", label: "Alabama" },
-    { key: "AK", label: "Alaska" },
-    { key: "CA", label: "California" },
-    { key: "CO", label: "Colorado" },
-    { key: "CT", label: "Connecticut" },
-    { key: "DE", label: "Delaware" },
-    { key: "FL", label: "Florida" },
-    { key: "GA", label: "Georgia" },
-    { key: "HI", label: "Hawaii" },
-    { key: "IL", label: "Illinois" },
-    { key: "KY", label: "Kentucky" },
-];
 
 export default {
-  name: 'HelloWorld',
-  data() {
+  	name: 'filtering-select',
+	model: {
+		prop: 'value',
+    	get event() { return event }
+	},  
+	data() {
       return {
-        inputChanged: false,
-        interactive: false,
-        disabled: false,
-        textInput: null,
-        selectedItem: null,
-        hoveredItem: null,
-        suggestions: [],
-        renderSuggestions: false,
-        isOverList: false
-      }
-  }, 
-  props: { // pass these in?
-    name: String,
-    idAttr: {
-        type: String,
-        default: 'key'
-    },
-    labelAttr: {
-        type: String,
-        default: 'label'
-    },
-    placeHolder: {
-        type: String,
-        default: 'Please input a value'
-    },
-    maxResults: {
-        type: Number,
-        default: 10
-    }
-  },
+			inputChanged: false,
+			disabled: false,
+			textInput: null,
+			selectedItem: null,
+			hoveredItem: null,
+			suggestions: [],
+			renderSuggestions: false,
+			isOverList: false,
+			loadingResponse: false
+		}
+  	}, 
+	props: { // these are passed in
+		name: String,
+		valueAttr: {
+		    type: String,
+		    default: 'key'
+		},
+		labelAttr: {
+		    type: String,
+		    default: 'label'
+		},
+		placeHolder: {
+		    type: String,
+		    default: 'Please input a value'
+		},
+		maxResults: {
+		    type: Number,
+		    default: 10
+		},
+		list: {
+			type: [Function, Array],
+			default: () => []
+		}
+ 	}, 
 	computed: {
 	    placeholderValue: function() {
 	        if (this.selectedItem) {
@@ -123,8 +119,6 @@ export default {
 		this.moveSelection(event);
 	},
 	keyUpListener: function(event) {
-
-		this.interactive = true;
 		this.inputChanged = true;
 
 		if (event.code == 'Backspace') {
@@ -154,7 +148,6 @@ export default {
 	blurListener: function() {
 		if (!this.isOverList) {
 			this.hideSuggestions();
-			this.interactive = false;
 			if (!this.selectedItem) {
 				this.textInput = null;
 			}
@@ -162,9 +155,20 @@ export default {
 	}, 
 	getSuggestions: function(queryText) {
 		let matches = [];
+		let results = [];
 		if (queryText) {
 			// Note: This is doing a "startsWith" instead of an "indexOf"
-			matches = RESULT_DATA.filter(e => 
+			if (this.listIsRequest()) {
+				// do ajax debouncing 
+				// and promise/await
+				this.loadingResponse = true;
+				results =  this.list(queryText) || []
+				
+				this.loadingResponse = false;				
+			} else {
+				results = this.list;
+			}			
+			matches = results.filter(e => 
 				e[this.labelAttr].toLowerCase().startsWith(queryText.toLowerCase()) 
 			);
 		} else {
@@ -246,14 +250,18 @@ export default {
 			this.$emit('hover', item, elem)
 		}
     },
+	listIsRequest () {
+		return typeof this.list === 'function'
+	},    
     valueProperty (obj) {
 		//return this.getPropertyByAttribute(obj, this.valueAttribute)
-		return obj[this.idAttr];
+		return obj[this.valueAttr];
     },
       
 	// implement debounce
 	// implement async query (pass as arg?)
 	// busy/loading message
+	// model-back-and-forth
 	// test with vuelidate validators !!!
 	// test for form submit?
 	// paging of results (keys?)
