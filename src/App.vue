@@ -5,10 +5,26 @@
     <img alt="Vue logo" src="./assets/logo.png">
 
     <div class="container">
+
       <div class="row">
         <div class="form-group">
           <label class="form-label">FilteringSelect Test</label>
-          <FilteringSelect name="zip" placeHolder="Override a placeHolder"/>
+			<div class="row">
+
+			</div>
+          <FilteringSelect 
+          		name="zip" 
+          		placeHolder="Override a placeHolder"
+          		:list="myList"
+          		v-model="selectValue"
+          		/>
+          		
+          <FilteringSelect 
+          		name="zip2" 
+          		placeHolder="Override a placeHolder"
+          		:list="getListFunction"
+          		v-model="zip2"
+          		/>          		
         </div>
       </div>
     </div>
@@ -19,12 +35,52 @@
 import HelloWorld from './components/HelloWorld.vue'
 import FilteringSelect from './components/FilteringSelect.vue'
 
+let RESULT_DATA = [
+    { key: "AL", label: "Alabama" },
+    { key: "AK", label: "Alaska" },
+    { key: "CA", label: "California" },
+    { key: "CO", label: "Colorado" },
+    { key: "CT", label: "Connecticut" },
+    { key: "DE", label: "Delaware" },
+    { key: "FL", label: "Florida" },
+    { key: "GA", label: "Georgia" },
+    { key: "HI", label: "Hawaii" },
+    { key: "IL", label: "Illinois" },
+    { key: "IN", label: "Indiana" },
+    { key: "KY", label: "Kentucky" },
+    { key: "LA", label: "Louisiana" },
+    { key: "ME", label: "Maine" },
+    { key: "MA", label: "Massachusetts" },
+    { key: "MI", label: "Michigan" },
+    { key: "MT", label: "Montaha" },
+    { key: "NJ", label: "New Jersey" },
+    { key: "NM", label: "New Mexico" },
+    { key: "NY", label: "New York" },
+    { key: "NC", label: "North Carolina" },
+];
+
 export default {
   name: 'app',
   components: {
     HelloWorld,
     FilteringSelect
-  }
+  },
+	data() {
+  		return {
+  			myList: RESULT_DATA,
+  			selectValue: null ,
+  			zip2: null			
+  		}
+	},
+	methods: {
+		getListFunction(text) {
+			//return new Promise(function(resolve, reject) {
+  				// maybe do some async stuff in here
+  			//resolve(RESULT_DATA);
+			//});
+			return RESULT_DATA;
+		}
+	}
 }
 </script>
 
