@@ -114,10 +114,12 @@ export default {
 		this.moveSelection(event);
 	},
 	keyUpListener: function(event) {
+		let typingForward = true;
 		this.inputChanged = true;
 
 		if (event.code == 'Backspace') {
 			this.clearSelection();
+			typingForward = false;
 		}
 		
 		if (event.code == 'Enter') {
@@ -132,6 +134,10 @@ export default {
 						
 			// Think through this 
 			this.renderSuggestions = (this.suggestions.length > 0);
+			
+			if ((this.suggestions.length == 1) && typingForward) {
+				this.select(this.suggestions[0]);
+			}
 		}
 	},
 	focusListener: function() {
@@ -148,7 +154,7 @@ export default {
 			}
 		}
 	}, 
-	getSuggestions: function(queryText) {
+	getSuggestions: async function(queryText) {
 		let matches = [];
 		let results = [];
 		if (queryText) {
@@ -157,7 +163,7 @@ export default {
 				// do ajax debouncing 
 				// and promise/await
 				this.loadingResponse = true;
-				results =  this.list(queryText) || []
+				results =  await (this.list(queryText) || [])
 				
 				this.loadingResponse = false;				
 			} else {
