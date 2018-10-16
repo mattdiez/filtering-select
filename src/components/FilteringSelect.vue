@@ -179,27 +179,26 @@ export default {
         })
         return remoteText.join('')
       },
-      // match starts at zero for letter process?
-      // cleanup placeholder stuff, override placeholder
       // implement debounce
-      // implement query (pass as arg?)
+      // implement async query (pass as arg?)
       // implement key navigation of results
-      // busy/loading
-      // implement keyup
+      // busy/loading message
       // implement carat up/down
-      // labelAttr override
-      // keyattr override
-      // validators !!!
-      // test for submit?
-      // implement max results
-      // implement highlighting of results 
+      // test with vuelidate validators !!!
+      // test for form submit?
       // click off behavior (@blur or whatevr)
-      // enter key behavior (autoselect?)
       // paging of results (keys?)
 
       // DONE
       // implement mouse select
-      // implement hover      
+      // implement hover   
+      // enter key behavior (autoselect?)   
+      // labelAttr override
+      // keyattr override
+      // implement max results
+      // implement highlighting of results 
+      // cleanup placeholder stuff, override placeholder
+      // match starts at zero for letter process?
   }
 }
 </script>
