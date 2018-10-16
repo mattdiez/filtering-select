@@ -1,7 +1,6 @@
 <template>
     <div>        
-        		<!-- for debugging purposes -->
-			<div>Selected Item: [{{selectedItem}}]</div>
+        		<!-- for debugging purposes -->			
         <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">
             <input 
                 type="search" 
@@ -51,10 +50,6 @@
 
 export default {
   	name: 'filtering-select',
-	model: {
-		prop: 'value',
-    	get event() { return event }
-	},  
 	data() {
       return {
 			inputChanged: false,
@@ -142,7 +137,7 @@ export default {
 	focusListener: function() {
 		this.showSuggestions();
 	},
-	hoverList (isOverList) {
+	hoverList: function (isOverList) {
 		this.isOverList = isOverList
 	},      
 	blurListener: function() {
@@ -208,6 +203,8 @@ export default {
 		this.hideSuggestions();
 		// update suggestions behind the scenes to match
 		this.suggestions = this.getSuggestions(this.textInput);
+		
+		this.$emit('select', item)
 	},
 	letterProcess (item) {
 		var remoteText = item[this.labelAttr].split('')
