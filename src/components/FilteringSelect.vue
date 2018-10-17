@@ -29,10 +29,9 @@
                     	<li v-if="loadingResponse">
                     		<a class="dropdown-item">Loading...</a>
                     	</li>
-						<li v-if="noResultsFound">
-							<a class="dropdown-item">No results found</a>
-						</li>
-						<li v-for="suggestion in suggestions">
+
+				
+						<li v-if="suggestions.length > 0" v-for="(suggestion, index) in suggestions">
 							<a class="dropdown-item" 
 								@click="suggestionClick(suggestion)"
 								v-html="highlightMatch(suggestion[labelAttr])"
@@ -42,6 +41,9 @@
             							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
             						}]"></a>
                         </li>
+						<li v-else-if="!loading">
+							<a class="dropdown-item">No results found</a>
+						</li>
                     </div>
                 </div>
         </div>        
@@ -95,10 +97,7 @@ export default {
  	}, 
 	computed: {
 		showSuggestions: function() {
-			return this.noResultsFound || this.suggestions.length > 1 || this.loadingResponse;
-		},
-		noResultsFound: function() {
-			return this.textInput && this.textInput.length > 0 && this.suggestions.length === 0
+			return  this.suggestions.length > 0 || this.loadingResponse;
 		},
 	    placeholderValue: function() {
 	        if (this.selectedItem) {
@@ -136,20 +135,21 @@ export default {
 		
 		if (event.code == 'Enter') {
 			if (this.suggestions.length > 0) {
-				// perhaps catch 'highlighted index' here instead
 				this.select(this.suggestions[this.hoveredIndex != -1 ? this.hoveredIndex : 0]);
 			}
 		}
+		else if ((event.code == 'ArrowDown') || (event.code == 'ArrowUp')) {
+			// catch these and do nothing
+			// this is ugly, refactor this
+			this.typingForward = false;
+		}
 		else {
-			// TODO: get all with a method. page through these?
-			//this.suggestions = this.getSuggestions(this.textInput);
-
  			if (this.debounce) {
  				clearTimeout(this.timeoutInstance)
 				this.timeoutInstance = setTimeout(this.research, this.debounce)
 			} else {
 				this.research()
-			  }
+			}
 		}
 	},
     async research () {
@@ -165,12 +165,13 @@ export default {
       }
       finally {
         this.canSend = true
-        //if ((this.suggestions.length === 0) && this.miscSlotsAreEmpty()) {
+
 		if (this.suggestions.length === 0) {
-          this.hideList()
+        	this.hideList()
         } else {
-          this.showList()
+        	this.showList()
 		}
+		// Autoselect first/only item
 		if ((this.suggestions.length === 1) && (this.typingForward)) {
 			this.select(this.suggestions[0])
 		}
@@ -200,10 +201,9 @@ export default {
 				// do ajax debouncing 
 				// and promise/await
 				this.loadingResponse = true;
-
-				this.showList()
-
-				results =  await (this.list(queryText) || [])
+				this.clearSuggestions();
+				
+				results =  await (this.list(queryText)) || []
 				
 				this.loadingResponse = false;				
 			} else {
@@ -271,9 +271,9 @@ export default {
 	moveSelection (e) {
 		
 		if ((e.code == 'ArrowDown') || (e.code == 'ArrowUp')) {
-        	e.preventDefault()
+			e.preventDefault()
 			this.showList()
-			
+
 			const isMovingDown = e.code == 'ArrowDown';
 			const direction = isMovingDown * 2 - 1
 			const listEdge = isMovingDown ? 0 : this.suggestions.length - 1
@@ -282,15 +282,15 @@ export default {
 			let item = null
 			
 			if (!this.hoveredItem) {
-			  item = this.selectedItem || this.suggestions[listEdge]
+				item = this.selectedItem || this.suggestions[listEdge]
 			} else if (hoversBetweenEdges) {
-			  item = this.suggestions[this.hoveredIndex + direction]
+				item = this.suggestions[this.hoveredIndex + direction]
 			} else /* if hovers on edge */ {
-			  item = this.suggestions[listEdge]
+				item = this.suggestions[listEdge]
 			}
-			
+
 			this.hover(item)
-      	}
+		}
 	},
 	hover (item, elem) {
 		this.hoveredItem = item
@@ -305,7 +305,8 @@ export default {
 		//return this.getPropertyByAttribute(obj, this.valueAttribute)
 		return obj[this.valueAttr];
     },
-      
+	
+	// disable research on arrow keys (!)
 	// implement debounce
 	// implement async query (pass as arg?)
 	// busy/loading message
@@ -314,7 +315,6 @@ export default {
 	// test for form submit?
 	// paging of results (keys?)
 	// template slot (!)
-	      	
 	// DONE
 	// click off behavior (@blur or whatevr)      
 	// implement carat up/down      

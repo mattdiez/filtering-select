@@ -87,24 +87,14 @@ export default {
   			selectValue: null ,	
         listFunctionValue: null
   		}
-	},
-	methods: {
-    sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    },
-    async doSleep() {
-      console.log("About to sleep")
-      await sleep(2000)
-      console.log("Slept, now resolve")
-    },
+  },
+  methods: {
 		getListFunction(text) {
 			return new Promise(function(resolve, reject) {
-          // maybe do some async stuff in here
-        console.log("Text is " + text )
-        // simulate a slooooow server
-        this.doSleep()
-        
-  			resolve(RESULT_DATA);
+        setTimeout(function(){
+          // simulate a slooooow server
+          resolve(RESULT_DATA);
+        }, 2000);
 			});
 		},
 		selectHandler(item) {
