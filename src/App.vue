@@ -20,7 +20,7 @@
             <label class="form-label">Static Data Test</label>
             <FilteringSelect 
                 name="zip" 
-                placeHolder="Please select a ZIP"
+                placeHolder="Please select a State"
                 :list="myList"
                 :autoselect-single="true"
                 :min-length="1"
@@ -37,7 +37,7 @@
             <label class="form-label">List Function Test</label>
             <FilteringSelect 
                 name="zip" 
-                placeHolder="Please select a ZIP"
+                placeHolder="Please select a State"
                 :list="getListFunction"
                 :autoselect-single="true"
                 :min-length="2"
