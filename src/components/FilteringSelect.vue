@@ -12,11 +12,11 @@
                 tabindex="-1"/>
 			
             <!-- //form-control text-input    -->
-            <input :disabled="disabled" @click="emitClickInput"
-            	@keydown="keyDownListener" 
+            <input :disabled="disabled" @click="emitClickInput" 
                 @keyup="keyUpListener"                
                 @focus="focusListener"
                 @blur="blurListener"
+                @input="inputListener"
                 v-model="textInput"
                 type="search" 
                 :name="name" 
@@ -160,9 +160,6 @@ export default {
 	emitClickInput () {
 		// TODO: implement this
 	},
-	keyDownListener (event) {
-		this.moveSelection(event);
-	},
 	keyUpListener (event) {
 		this.typingForward = true;
 
@@ -176,20 +173,19 @@ export default {
 				this.select(this.suggestions[this.hoveredIndex != -1 ? this.hoveredIndex : 0]);
 			}
 		}
-		else if ((event.code == 'ArrowDown') || (event.code == 'ArrowUp')) {
-			// catch these and do nothing
-			// this is ugly, refactor this
-			this.typingForward = false;
-		}
-		else {
+		
+		this.moveSelection(event);
+	},
+	inputListener() {		
+		if (this.selectedItem) {				
 			this.clearSelection();
- 			if (this.debounce) {
- 				clearTimeout(this.timeoutInstance)
-				this.timeoutInstance = setTimeout(this.research, this.debounce)
-			} else {
-				this.research()
-			}
 		}
+		if (this.debounce) {
+			clearTimeout(this.timeoutInstance)
+			this.timeoutInstance = setTimeout(this.research, this.debounce)
+		} else {
+			this.research()
+		}	
 	},
     async research () {
       try {
@@ -225,9 +221,8 @@ export default {
 			if (!this.selectedItem) {
 				this.textInput = null;
 				this.clearSuggestions();
-			}
-				
-			
+				this.clearSelection();
+			}							
 			this.hideList();
 		}
 	}, 
@@ -282,9 +277,8 @@ export default {
 		const texts = query.split(/[\s-_/\\|\.]/gm).filter(t => !!t) || [''];
 		return result.replace(new RegExp('(.*?)(' + texts.join('|') + ')(.*?)','gi'), '$1<b>$2</b>$3');
     },
-	clearSelection () {
-		this.selectedItem = null;
-		this.$emit('select', null)
+	clearSelection () {		
+		this.selectedItem = null;	
 	},
 	showList () {
 		if (!this.renderSuggestions) {
@@ -363,29 +357,9 @@ export default {
 		return obj[this.valueAttr];
     },
 	
-
-	// model-back-and-forth
-	// test with vuelidate validators !!!
 	// test for form submit?
 	// template slot (!)
 	// paging of results (keys?)
-	// DONE
-	// disable research on arrow keys (!)
-	// implement debounce
-	// implement async query (pass as arg?)
-	// busy/loading message
-	// click off behavior (@blur or whatevr)      
-	// implement carat up/down      
-	// implement mouse select
-	// implement hover   
-	// enter key behavior (autoselect?)   
-	// labelAttr override
-	// keyattr override
-	// implement max results
-	// implement highlighting of results 
-	// cleanup placeholder stuff, override placeholder
-	// match starts at zero for letter process?
-	// implement key navigation of results	
   }
 }
 </script>
