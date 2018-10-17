@@ -244,8 +244,8 @@ export default {
 		this.textInput = item[this.labelAttr];		
 
 		// reduce suggestion list to selected val
-		this.suggestions = this.suggestions.splice(0, 1);
-		
+		this.suggestions = [item];
+
 		this.hideSuggestions();
 
 		this.$emit('select', item)
