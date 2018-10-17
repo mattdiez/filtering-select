@@ -12,9 +12,6 @@
       <div class="row">
         <div class="form-group">
           <label class="form-label">FilteringSelect Test</label>
-			<div class="row">
-
-			</div>
           <FilteringSelect 
           		name="zip" 
           		placeHolder="Please select a ZIP"
@@ -26,6 +23,8 @@
         </div>
       </div>
     </div>
+
+	
   </div>
 </template>
 
@@ -71,12 +70,21 @@ export default {
   		}
 	},
 	methods: {
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    async doSleep() {
+      await sleep(2000)
+    },
 		getListFunction(text) {
-			//return new Promise(function(resolve, reject) {
-  				// maybe do some async stuff in here
-  			//resolve(RESULT_DATA);
-			//});
-			return RESULT_DATA;
+			return new Promise(function(resolve, reject) {
+          // maybe do some async stuff in here
+        console.log("Text is " + text )
+        // simulate a slooooow server
+        doSleep()
+        console.log("Slept, now resolve")
+  			resolve(RESULT_DATA);
+			});
 		},
 		selectHandler(item) {
 			this.selectValue = item;

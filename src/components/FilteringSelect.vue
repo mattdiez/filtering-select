@@ -85,6 +85,10 @@ export default {
 		list: {
 			type: [Function, Array],
 			default: () => []
+		},
+		debounce: {
+			type: Number,
+			default: 350
 		}
  	}, 
 	computed: {
@@ -108,13 +112,13 @@ export default {
 		},    
 	},
   methods: {
-	emitClickInput: function() {
+	emitClickInput () {
 		// TODO: implement this
 	},
-	keyDownListener: function(event) {
+	keyDownListener (event) {
 		this.moveSelection(event);
 	},
-	keyUpListener: function(event) {
+	keyUpListener (event) {
 		this.typingForward = true;
 
 		if (event.code == 'Backspace') {
@@ -161,17 +165,18 @@ export default {
 		}
 		if ((this.suggestions.length === 1) && (this.typingForward)) {
 			this.select(this.suggestions[0])
+			this.suggestions = this.suggestions.splice(0, 1);
 		}
         return this.suggestions
       }
     },
-	focusListener: function() {
+	focusListener () {
 		this.showSuggestions();
 	},
-	hoverList: function (isOverList) {
+	hoverList (isOverList) {
 		this.isOverList = isOverList
 	},      
-	blurListener: function() {
+	blurListener () {
 		if (!this.isOverList) {
 			this.hideSuggestions();
 			if (!this.selectedItem) {
@@ -179,7 +184,7 @@ export default {
 			}
 		}
 	}, 
-	getSuggestions: async function(queryText) {
+	async getSuggestions (queryText) {
 		let matches = [];
 		let results = [];
 		if (queryText) {
@@ -188,6 +193,8 @@ export default {
 				// do ajax debouncing 
 				// and promise/await
 				this.loadingResponse = true;
+
+				this.showSuggestions()
 
 				results =  await (this.list(queryText) || [])
 				
@@ -205,7 +212,7 @@ export default {
 		// consider paging at some time
 		return matches.splice(0, this.maxResults);
     },
-    highlightMatch: function(value) {
+    highlightMatch (value) {
         if (!value) return '-';
 
 		let result = value;
@@ -216,32 +223,29 @@ export default {
 		const texts = query.split(/[\s-_/\\|\.]/gm).filter(t => !!t) || [''];
 		return result.replace(new RegExp('(.*?)(' + texts.join('|') + ')(.*?)','gi'), '$1<b>$2</b>$3');
     },
-	clearSelection: function() {
+	clearSelection () {
 		this.selectedItem = null;
 		this.$emit('select', null)
 	},
-	showSuggestions: function() {
+	showSuggestions () {
 		this.renderSuggestions = true;
 	},
-	hideSuggestions: function() {
+	hideSuggestions () {
 		this.renderSuggestions = false;
 	},
-	clearSuggestions: function() {
+	clearSuggestions () {
 		this.suggestions = [];
 	},
-	suggestionClick: function(item) {
+	suggestionClick (item) {
 		this.isOverList = false;
 		this.select(item);
 	},
-	select: function(item) {
+	select (item) {
 		this.selectedItem = item;
 		this.textInput = item[this.labelAttr];		
 
 		this.hideSuggestions();
 
-		// update suggestions behind the scenes to match
-		//this.suggestions = this.getSuggestions(this.textInput);
-		
 		this.$emit('select', item)
 	},
 	letterProcess (item) {
