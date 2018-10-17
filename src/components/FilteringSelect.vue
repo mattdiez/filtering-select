@@ -1,7 +1,7 @@
 <template>
     <div>        
         <!-- for debugging purposes -->		
-        <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">
+        <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">        	
             <input 
                 type="search" 
                 name="search" 
@@ -10,7 +10,8 @@
                 required="required" 
                 class="form-control placeholder" 
                 tabindex="-1"/>
-                <!-- //form-control text-input    -->
+			
+            <!-- //form-control text-input    -->
             <input :disabled="disabled" @click="emitClickInput"
             	@keydown="keyDownListener" 
                 @keyup="keyUpListener"                
@@ -26,7 +27,9 @@
                 :class="classExpression"
   				:state="stateExpression" 
                 />
-			<!-- slot for feedback -->
+        	<!-- slot for feedback -->
+			<slot></slot>
+			<!-- slot for feedback -->                                  						
 			<div class="dropdown" v-bind:class="{ show : renderSuggestions}"
 					@mouseenter="hoverList(true)"
 					@mouseleave="hoverList(false)">
@@ -47,9 +50,10 @@
 						<li v-if="(suggestions.length == 0) && !loadingResponse">
 							<a class="dropdown-item">No results found</a>
 						</li>
-                    </div>
-                </div>
-        </div>        
+				</div>
+			</div>             
+        </div>    
+     
     </div>
 </template>
 
@@ -415,9 +419,9 @@ export default {
 	position: absolute;
 	width: 0;
 	height: 0;
-	margin: auto;
-	top: 0;
-	bottom: 0;
+	top: 16px;
+	/* margin: auto; */
+	/* bottom: 0; */
 	right: 0.75em;
 	border-top: 5px solid #000;
 	border-right: 5px solid transparent;
