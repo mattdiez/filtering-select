@@ -2,7 +2,6 @@
   
   <div id="app">
     <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.3/dist/css/bootstrap.min.css"/>
-	<pre>{{$v}}</pre>
 
     <div class="container">
 
@@ -28,7 +27,9 @@
                 :classExpression="$v.select1Value.$error ? 'is-invalid' : null"
                 :stateExpression="$v.select1Value.$error ? 'invalid' : null"
                 v-model="$v.select1Value.$model"
-                />    		
+                >
+                <div class="invalid-feedback" v-if="!$v.select1Value.itemSelected">This field is required</div>
+			</FilteringSelect>
           </div>
         </div>
         <div class="col-md-6">
@@ -103,12 +104,10 @@ export default {
   		}
   },
 	validations: {
-		select1Value: {
-			/*
+		select1Value: {			
 			itemSelected: function(val) {
 				return val != null;
 			}
-			*/
 		}
 	},  
   	methods: {
@@ -135,7 +134,6 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin-top: 60px;
 }
