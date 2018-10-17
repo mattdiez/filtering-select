@@ -1,7 +1,6 @@
 <template>
     <div>        
-        		<!-- for debugging purposes -->		
-		
+        <!-- for debugging purposes -->		
         <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">
             <input 
                 type="search" 
@@ -34,8 +33,7 @@
                     <div class="dropdown-menu" v-bind:class="{ show : renderSuggestions}" >
                     	<li v-if="loadingResponse">
                     		<a class="dropdown-item">Loading...</a>
-                    	</li>
-				
+                    	</li>				
 						<li v-if="suggestions.length > 0" v-for="(suggestion, index) in suggestions">
 							<a class="dropdown-item" 
 								@click="suggestionClick(suggestion)"
@@ -46,7 +44,7 @@
             							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
             						}]"></a>
                         </li>
-						<li v-else-if="!loading">
+						<li v-if="(suggestions.length == 0) && !loadingResponse">
 							<a class="dropdown-item">No results found</a>
 						</li>
                     </div>
@@ -180,6 +178,7 @@ export default {
 			this.typingForward = false;
 		}
 		else {
+			this.clearSelection();
  			if (this.debounce) {
  				clearTimeout(this.timeoutInstance)
 				this.timeoutInstance = setTimeout(this.research, this.debounce)
@@ -201,12 +200,9 @@ export default {
       }
       finally {
         this.canSend = true
-
-		if (this.suggestions.length === 0) {
-        	this.hideList()
-        } else {
-        	this.showList()
-		}
+				
+		this.showList();
+		
 		// Autoselect first/only item
 		if ((this.suggestions.length === 1) && (this.typingForward) && this.autoselectSingle) {
 			this.select(this.suggestions[0])
