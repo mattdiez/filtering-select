@@ -6,20 +6,39 @@
 
     <div class="container">
 
-	<div class="row">
-		<div>Selected Item: [{{selectValue}}]</div>
-	</div>
       <div class="row">
-        <div class="form-group">
-          <label class="form-label">FilteringSelect Test</label>
-          <FilteringSelect 
-          		name="zip" 
-          		placeHolder="Please select a ZIP"
-          		:list="myList"
-          		v-model="selectValue"
-          		@select="selectHandler"
-          		/>
-          		        		
+        <div class="col-md-6">
+          <div>Selected Item: [{{selectValue}}]</div>
+        </div>
+        <div class="col-md-6">
+          <div>Selected Item: [{{listFunctionValue}}]</div>
+        </div>
+	    </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label class="form-label">Static Data Test</label>
+            <FilteringSelect 
+                name="zip" 
+                placeHolder="Please select a ZIP"
+                :list="myList"
+                v-model="selectValue"
+                @select="selectHandler"
+                />    		
+          </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+            <label class="form-label">List Function Test</label>
+            <FilteringSelect 
+                name="zip" 
+                placeHolder="Please select a ZIP"
+                :list="getListFunction"
+                v-model="selectValue"
+                @select="listSelectHandler"
+                />    		
+            </div>
         </div>
       </div>
     </div>
@@ -65,8 +84,8 @@ export default {
 	data() {
   		return {
   			myList: RESULT_DATA,
-  			selectValue: null ,
-  			zip2: null			
+  			selectValue: null ,	
+        listFunctionValue: null
   		}
 	},
 	methods: {
@@ -74,7 +93,9 @@ export default {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
     async doSleep() {
+      console.log("About to sleep")
       await sleep(2000)
+      console.log("Slept, now resolve")
     },
 		getListFunction(text) {
 			return new Promise(function(resolve, reject) {
@@ -82,12 +103,15 @@ export default {
         console.log("Text is " + text )
         // simulate a slooooow server
         doSleep()
-        console.log("Slept, now resolve")
+        
   			resolve(RESULT_DATA);
 			});
 		},
 		selectHandler(item) {
 			this.selectValue = item;
+    },
+    listSelectHandler(item) {
+			this.listFunctionValue = item;
 		}
 	}
 }

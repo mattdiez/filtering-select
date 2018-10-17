@@ -165,7 +165,6 @@ export default {
 		}
 		if ((this.suggestions.length === 1) && (this.typingForward)) {
 			this.select(this.suggestions[0])
-			this.suggestions = this.suggestions.splice(0, 1);
 		}
         return this.suggestions
       }
@@ -244,6 +243,9 @@ export default {
 		this.selectedItem = item;
 		this.textInput = item[this.labelAttr];		
 
+		// reduce suggestion list to selected val
+		this.suggestions = this.suggestions.splice(0, 1);
+		
 		this.hideSuggestions();
 
 		this.$emit('select', item)
