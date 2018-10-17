@@ -36,17 +36,28 @@
                     <div class="dropdown-menu" v-bind:class="{ show : renderSuggestions}" >
                     	<li v-if="loadingResponse">
                     		<a class="dropdown-item">Loading...</a>
-                    	</li>				
+                    	</li>
+                    		
+                    	
 						<li v-if="suggestions.length > 0" v-for="(suggestion, index) in suggestions">
-							<a class="dropdown-item" 
-								@click="suggestionClick(suggestion)"
-								v-html="highlightMatch(suggestion[labelAttr])"
-								:class="[
-									{
-            							selected: selectedItem && (valueProperty(suggestion) == valueProperty(selectedItem)),
-            							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
-            						}]"></a>
+							<slot name="suggestion-item" 
+								:suggestion="suggestion"
+								:selectedItem="selectedItem"
+								:hoveredItem="hoveredItem"
+								:valueProperty="valueProperty"
+								:highlightMatch="highlightMatch"
+								>							
+								<a class="dropdown-item" 
+									@click="suggestionClick(suggestion)"
+									v-html="highlightMatch(suggestion[labelAttr])"
+									:class="[
+										{
+	            							selected: selectedItem && (valueProperty(suggestion) == valueProperty(selectedItem)),
+	            							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
+	            						}]"></a>
+							</slot>	            						            				
                         </li>
+                        
 						<li v-if="(suggestions.length == 0) && !loadingResponse">
 							<a class="dropdown-item">No results found</a>
 						</li>
