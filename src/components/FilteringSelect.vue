@@ -11,17 +11,23 @@
                 required="required" 
                 class="form-control placeholder" 
                 tabindex="-1"/>
+                <!-- //form-control text-input    -->
             <input :disabled="disabled" @click="emitClickInput"
             	@keydown="keyDownListener" 
                 @keyup="keyUpListener"                
                 @focus="focusListener"
                 @blur="blurListener"
                 v-model="textInput"
-                type="search" :name="name" placeholder="" 
-                autocomplete="off" required="required" 
-                class="form-control text-input" 
+                type="search" 
+                :name="name" 
+                placeholder="" 
+                autocomplete="off" 
+                required="required"
+                class="form-control text-input"                                
+                :class="classExpression"
+  				:state="stateExpression" 
                 />
-           
+			<!-- slot for feedback -->
 			<div class="dropdown" v-bind:class="{ show : renderSuggestions}"
 					@mouseenter="hoverList(true)"
 					@mouseleave="hoverList(false)">
@@ -57,7 +63,6 @@ export default {
       return {
 			disabled: false,
 			textInput: null,
-			//selectedItem: null,
 			hoveredItem: null,
 			suggestions: [],
 			renderSuggestions: false,
@@ -68,7 +73,10 @@ export default {
 		}
   	}, 
 	props: { // these are passed in
-		name: String,
+		name: {
+			type: String,
+			default: 'filtering-select-name'
+		},
 		value: {
 			type: [Object, String],
 			default: () => {}
@@ -100,6 +108,18 @@ export default {
 		debounce: {
 			type: Number,
 			default: 350
+		},
+		autoselectSingle: {
+			type: Boolean,
+			default: false
+		},
+		classExpression: {
+			type: String,
+			default: null
+		},
+		stateExpression: {
+			type: String,
+			default: null
 		}
  	}, 
 	computed: {
@@ -188,7 +208,7 @@ export default {
         	this.showList()
 		}
 		// Autoselect first/only item
-		if ((this.suggestions.length === 1) && (this.typingForward)) {
+		if ((this.suggestions.length === 1) && (this.typingForward) && this.autoselectSingle) {
 			this.select(this.suggestions[0])
 		}
         return this.suggestions
@@ -235,10 +255,15 @@ export default {
 				results = this.list;
 			}	
 
-			// Note: This is doing a "startsWith" instead of an "indexOf"		
+			/*	
+			Note: This is doing a "startsWith" instead of an "indexOf"	
 			matches = results.filter(e => 
 				e[this.labelAttr].toLowerCase().startsWith(queryText.toLowerCase()) 
 			);
+			*/
+			matches = results.filter(e => 
+				e[this.labelAttr].toLowerCase().indexOf(queryText.toLowerCase()) != -1 
+			);			
 		} else {
 			// clear out selected item
 			this.clearSelection();
@@ -289,14 +314,16 @@ export default {
 		this.hideList();
 	},
 	letterProcess (item) {
-		var remoteText = item[this.labelAttr].split('')
-		var inputText = this.textInput.split('')
-		inputText.forEach(function (letter, key) {
-			if (letter !== remoteText[key]) {
-				remoteText[key] = letter
-			}
-		})
-		return remoteText.join('')
+		if (item[this.labelAttr].toLowerCase().startsWith(this.textInput.toLowerCase())) {
+			var remoteText = item[this.labelAttr].split('')
+			var inputText = this.textInput.split('')		
+			inputText.forEach(function (letter, key) {
+				if (letter !== remoteText[key]) {
+					remoteText[key] = letter
+				}
+			})
+			return remoteText.join('')
+		}
 	},
 	moveSelection (e) {
 		
@@ -412,12 +439,12 @@ export default {
 }
 
 .dropdown-item.hover {
-  background-color: #2874D5 !important;
-  color: #fff !important;
+	background-color: #2874D5 !important;
+	color: #fff !important;
 }
 
 .dropdown-item.selected {
-  background-color: #2832D5;
+  /*  background-color: #2832D5; */
   color: #fff;
 }
 </style>
