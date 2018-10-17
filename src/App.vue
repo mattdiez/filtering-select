@@ -1,6 +1,8 @@
 <template>
-  
+	
+	
   <div id="app">
+    
     <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.3/dist/css/bootstrap.min.css"/>
 
     <div class="container">
@@ -24,11 +26,24 @@
                 :list="myList"
                 :autoselect-single="true"
                 :min-length="1"
-                :classExpression="$v.select1Value.$error ? 'is-invalid' : null"
-                :stateExpression="$v.select1Value.$error ? 'invalid' : null"
+                :hasError="$v.select1Value.$error"
                 v-model="$v.select1Value.$model"
                 >
                 <div class="invalid-feedback" v-if="!$v.select1Value.itemSelected">This field is required</div>
+                
+                <div slot="suggestion-item" slot-scope="{suggestion, selectedItem, hoveredItem, valueProperty, highlightMatch}">
+                	
+							<a class="dropdown-item" 
+								@click="suggestionClick(suggestion)"								
+								:class="[
+									{
+            							selected: selectedItem && (valueProperty(suggestion) == valueProperty(selectedItem)),
+            							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
+            						}]">
+            					<span v-html="highlightMatch(suggestion.label)"/> - {{suggestion.key}}	
+            				</a>
+					            						       
+            	</div>         
 			</FilteringSelect>
           </div>
         </div>
