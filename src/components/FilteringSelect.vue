@@ -52,7 +52,6 @@ export default {
   	name: 'filtering-select',
 	data() {
       return {
-			inputChanged: false,
 			disabled: false,
 			textInput: null,
 			selectedItem: null,
@@ -60,7 +59,9 @@ export default {
 			suggestions: [],
 			renderSuggestions: false,
 			isOverList: false,
-			loadingResponse: false
+			loadingResponse: false,
+			canSend: true,
+			typingForward: true
 		}
   	}, 
 	props: { // these are passed in
@@ -114,12 +115,11 @@ export default {
 		this.moveSelection(event);
 	},
 	keyUpListener: function(event) {
-		let typingForward = true;
-		this.inputChanged = true;
+		this.typingForward = true;
 
 		if (event.code == 'Backspace') {
 			this.clearSelection();
-			typingForward = false;
+			this.typingForward = false;
 		}
 		
 		if (event.code == 'Enter') {
@@ -130,16 +130,41 @@ export default {
 		}
 		else {
 			// TODO: get all with a method. page through these?
-			this.suggestions = this.getSuggestions(this.textInput);
-						
-			// Think through this 
-			this.renderSuggestions = (this.suggestions.length > 0);
-			
-			if ((this.suggestions.length == 1) && typingForward) {
-				this.select(this.suggestions[0]);
-			}
+			//this.suggestions = this.getSuggestions(this.textInput);
+
+ 			if (this.debounce) {
+ 				clearTimeout(this.timeoutInstance)
+				this.timeoutInstance = setTimeout(this.research, this.debounce)
+			} else {
+				this.research()
+			  }
 		}
 	},
+    async research () {
+      try {
+        if (this.canSend) {
+          this.canSend = false
+          this.$set(this, 'suggestions', await this.getSuggestions(this.textInput))
+        }
+      }
+      catch (e) {
+        this.clearSuggestions()
+        throw e
+      }
+      finally {
+        this.canSend = true
+        //if ((this.suggestions.length === 0) && this.miscSlotsAreEmpty()) {
+		if (this.suggestions.length === 0) {
+          this.hideSuggestions()
+        } else {
+          this.showSuggestions()
+		}
+		if ((this.suggestions.length === 1) && (this.typingForward)) {
+			this.select(this.suggestions[0])
+		}
+        return this.suggestions
+      }
+    },
 	focusListener: function() {
 		this.showSuggestions();
 	},
@@ -163,6 +188,7 @@ export default {
 				// do ajax debouncing 
 				// and promise/await
 				this.loadingResponse = true;
+
 				results =  await (this.list(queryText) || [])
 				
 				this.loadingResponse = false;				
@@ -200,16 +226,21 @@ export default {
 	hideSuggestions: function() {
 		this.renderSuggestions = false;
 	},
+	clearSuggestions: function() {
+		this.suggestions = [];
+	},
 	suggestionClick: function(item) {
 		this.isOverList = false;
 		this.select(item);
 	},
 	select: function(item) {
 		this.selectedItem = item;
-		this.textInput = item[this.labelAttr];		         
+		this.textInput = item[this.labelAttr];		
+
 		this.hideSuggestions();
+
 		// update suggestions behind the scenes to match
-		this.suggestions = this.getSuggestions(this.textInput);
+		//this.suggestions = this.getSuggestions(this.textInput);
 		
 		this.$emit('select', item)
 	},
@@ -226,7 +257,6 @@ export default {
 	moveSelection (e) {
 		
 		if ((e.code == 'ArrowDown') || (e.code == 'ArrowUp')) {
-			debugger;;
         	e.preventDefault()
 			this.showSuggestions()
 			

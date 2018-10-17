@@ -17,7 +17,7 @@
 			</div>
           <FilteringSelect 
           		name="zip" 
-          		placeHolder="Override a placeHolder"
+          		placeHolder="Please select a ZIP"
           		:list="myList"
           		v-model="selectValue"
           		@select="selectHandler"
