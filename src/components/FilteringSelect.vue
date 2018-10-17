@@ -1,7 +1,7 @@
 <template>
     <div>        
         <!-- for debugging purposes -->		
-        <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">        	
+        <div class="input-group-placeholder"  v-bind:class="{ expanded : renderSuggestions, 'is-invalid' : hasError}">        	
             <input 
                 type="search" 
                 name="search" 
@@ -24,9 +24,9 @@
                 autocomplete="off" 
                 required="required"
                 class="form-control text-input"                                
-                :class="classExpression"
-  				:state="stateExpression" 
+                v-bind:class="{'is-invalid' : hasError}"
                 />
+		</div>                    
         	<!-- slot for feedback -->
 			<slot></slot>
 			<!-- slot for feedback -->                                  						
@@ -52,7 +52,7 @@
 						</li>
 				</div>
 			</div>             
-        </div>    
+        
      
     </div>
 </template>
@@ -115,12 +115,8 @@ export default {
 			type: Boolean,
 			default: false
 		},
-		classExpression: {
-			type: String,
-			default: null
-		},
-		stateExpression: {
-			type: String,
+		hasError: {
+			type: Boolean,
 			default: null
 		}
  	}, 
@@ -372,6 +368,10 @@ export default {
     position: relative;
 }
 
+.input-group-placeholder.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
 .input-group-placeholder .form-control {
     width: 100%;
 }
@@ -389,18 +389,18 @@ export default {
 }
 
 .input-group-placeholder:after {
-	content: "";
-	position: absolute;
-	width: 0;
-	height: 0;
-	top: 16px;
-	/* margin: auto; */
-	/* bottom: 0; */
-	right: 0.75em;
-	border-top: 5px solid #000;
-	border-right: 5px solid transparent;
-	border-left: 5px solid transparent;
-	pointer-events: none;
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  right: 0.75em;
+  border-top: 5px solid #000;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  pointer-events: none;
 }
 
 .input-group-placeholder.expanded:after { 
