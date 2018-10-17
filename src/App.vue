@@ -2,7 +2,7 @@
   
   <div id="app">
     <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.3/dist/css/bootstrap.min.css"/>
-    <img alt="Vue logo" src="./assets/logo.png">
+	<pre>{{$v}}</pre>
 
     <div class="container">
 
@@ -23,8 +23,11 @@
                 name="zip" 
                 placeHolder="Please select a ZIP"
                 :list="myList"
-                :min-length="2"
-                v-model="select1Value"
+                :autoselect-single="true"
+                :min-length="1"
+                :classExpression="$v.select1Value.$error ? 'is-invalid' : null"
+                :stateExpression="$v.select1Value.$error ? 'invalid' : null"
+                v-model="$v.select1Value.$model"
                 />    		
           </div>
         </div>
@@ -35,6 +38,7 @@
                 name="zip" 
                 placeHolder="Please select a ZIP"
                 :list="getListFunction"
+                :autoselect-single="true"
                 :min-length="2"
                 v-model="select2Value"
                 @select="listSelectHandler"
@@ -49,6 +53,14 @@
 </template>
 
 <script>
+
+
+
+import Vue from 'vue'
+import Vuelidate from 'vuelidate'
+Vue.use(Vuelidate)
+
+const { required, minLength, helpers } = require('vuelidate/lib/validators')
 import HelloWorld from './components/HelloWorld.vue'
 import FilteringSelect from './components/FilteringSelect.vue'
 
@@ -90,7 +102,16 @@ export default {
         listFunctionValue: null
   		}
   },
-  methods: {
+	validations: {
+		select1Value: {
+			/*
+			itemSelected: function(val) {
+				return val != null;
+			}
+			*/
+		}
+	},  
+  	methods: {
 		getListFunction(text) {
 			return new Promise(function(resolve, reject) {
         setTimeout(function(){
