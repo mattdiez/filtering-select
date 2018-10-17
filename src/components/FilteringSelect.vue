@@ -29,7 +29,6 @@
                     	<li v-if="loadingResponse">
                     		<a class="dropdown-item">Loading...</a>
                     	</li>
-
 				
 						<li v-if="suggestions.length > 0" v-for="(suggestion, index) in suggestions">
 							<a class="dropdown-item" 
@@ -160,7 +159,7 @@ export default {
       try {
         if (this.canSend) {
           this.canSend = false
-          this.$set(this, 'suggestions', await this.getSuggestions(this.textInput))
+          this.$set(this, 'suggestions', await this.getSuggestions())
         }
       }
       catch (e) {
@@ -194,31 +193,38 @@ export default {
 				this.textInput = null;
 				this.clearSuggestions();
 			}
+				
+			
+			this.hideList();
 		}
 	}, 
-	async getSuggestions (queryText) {
+	async getSuggestions () {
 		let matches = [];
 		let results = [];
+		let queryText = this.textInput;
+
 		if (queryText) {
 			if (queryText.length < this.minLength) {
         		if (this.renderSuggestions) {
           			this.hideList()
-          			return []
 				}
+				return []
 			}
-			// Note: This is doing a "startsWith" instead of an "indexOf"
+
+			this.clearSuggestions();
+
 			if (this.listIsRequest()) {
-				// do ajax debouncing 
-				// and promise/await
 				this.loadingResponse = true;
-				this.clearSuggestions();
+				this.showList(); 
 				
 				results =  await (this.list(queryText)) || []
 				
 				this.loadingResponse = false;				
 			} else {
 				results = this.list;
-			}			
+			}	
+
+			// Note: This is doing a "startsWith" instead of an "indexOf"		
 			matches = results.filter(e => 
 				e[this.labelAttr].toLowerCase().startsWith(queryText.toLowerCase()) 
 			);
@@ -246,10 +252,9 @@ export default {
 	},
 	showList () {
 		if (!this.renderSuggestions) {
-        	if (this.textInput && (this.textInput.length >= this.minLength)
-          		&& ((this.suggestions.length > 0) )) {
+			if (this.textInput && (this.textInput.length >= this.minLength)) {
 				this.renderSuggestions = true
-          		this.$emit('show-list')
+				this.$emit('show-list')
         	}
       	}
 	},
