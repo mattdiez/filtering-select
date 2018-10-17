@@ -1,7 +1,8 @@
 <template>
     <div>        
-        		<!-- for debugging purposes -->			
-        <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">
+        		<!-- for debugging purposes -->		
+		
+        <div class="input-group-placeholder" v-bind:class="{ expanded : showSuggestions}">
             <input 
                 type="search" 
                 name="search" 
@@ -21,18 +22,19 @@
                 class="form-control text-input" 
                 />
            
-			<div class="dropdown" v-bind:class="{ show : renderSuggestions}"
+			<div class="dropdown" v-bind:class="{ show : showSuggestions}"
 					@mouseenter="hoverList(true)"
 					@mouseleave="hoverList(false)">
-                    <div class="dropdown-menu" v-bind:class="{ show : renderSuggestions}" >
+                    <div class="dropdown-menu" v-bind:class="{ show : showSuggestions}" >
                     	<li v-if="loadingResponse">
                     		<a class="dropdown-item">Loading...</a>
                     	</li>
-						<li v-if="!loadingResponse && suggestions.length === 0">
+						<li v-if="noResultsFound">
 							<a class="dropdown-item">No results found</a>
 						</li>
 						<li v-for="suggestion in suggestions">
-							<a class="dropdown-item" @click="suggestionClick(suggestion)"
+							<a class="dropdown-item" 
+								@click="suggestionClick(suggestion)"
 								v-html="highlightMatch(suggestion[labelAttr])"
 								:class="[
 									{
@@ -92,6 +94,12 @@ export default {
 		}
  	}, 
 	computed: {
+		showSuggestions: function() {
+			return this.noResultsFound || this.suggestions.length > 1 || this.loadingResponse;
+		},
+		noResultsFound: function() {
+			return this.textInput && this.textInput.length > 0 && this.suggestions.length === 0
+		},
 	    placeholderValue: function() {
 	        if (this.selectedItem) {
 	            // hide the placeholder
@@ -159,9 +167,9 @@ export default {
         this.canSend = true
         //if ((this.suggestions.length === 0) && this.miscSlotsAreEmpty()) {
 		if (this.suggestions.length === 0) {
-          this.hideSuggestions()
+          this.hideList()
         } else {
-          this.showSuggestions()
+          this.showList()
 		}
 		if ((this.suggestions.length === 1) && (this.typingForward)) {
 			this.select(this.suggestions[0])
@@ -170,16 +178,16 @@ export default {
       }
     },
 	focusListener () {
-		this.showSuggestions();
+		this.showList();
 	},
 	hoverList (isOverList) {
 		this.isOverList = isOverList
 	},      
 	blurListener () {
 		if (!this.isOverList) {
-			this.hideSuggestions();
 			if (!this.selectedItem) {
 				this.textInput = null;
+				this.clearSuggestions();
 			}
 		}
 	}, 
@@ -193,7 +201,7 @@ export default {
 				// and promise/await
 				this.loadingResponse = true;
 
-				this.showSuggestions()
+				this.showList()
 
 				results =  await (this.list(queryText) || [])
 				
@@ -226,10 +234,10 @@ export default {
 		this.selectedItem = null;
 		this.$emit('select', null)
 	},
-	showSuggestions () {
+	showList () {
 		this.renderSuggestions = true;
 	},
-	hideSuggestions () {
+	hideList () {
 		this.renderSuggestions = false;
 	},
 	clearSuggestions () {
@@ -246,7 +254,7 @@ export default {
 		// reduce suggestion list to selected val
 		this.suggestions = [item];
 
-		this.hideSuggestions();
+		this.hideList();
 
 		this.$emit('select', item)
 	},
@@ -264,7 +272,7 @@ export default {
 		
 		if ((e.code == 'ArrowDown') || (e.code == 'ArrowUp')) {
         	e.preventDefault()
-			this.showSuggestions()
+			this.showList()
 			
 			const isMovingDown = e.code == 'ArrowDown';
 			const direction = isMovingDown * 2 - 1

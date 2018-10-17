@@ -102,7 +102,7 @@ export default {
           // maybe do some async stuff in here
         console.log("Text is " + text )
         // simulate a slooooow server
-        doSleep()
+        this.doSleep()
         
   			resolve(RESULT_DATA);
 			});
