@@ -8,10 +8,10 @@
 
       <div class="row">
         <div class="col-md-6">
-          <div>Selected Item: [{{selectValue}}]</div>
+          <div>Selected Item: [{{select1Value}}]</div>
         </div>
         <div class="col-md-6">
-          <div>Selected Item: [{{listFunctionValue}}]</div>
+          <div>Selected Item: [{{select2Value}}]</div>
         </div>
 	    </div>
 
@@ -24,8 +24,7 @@
                 placeHolder="Please select a ZIP"
                 :list="myList"
                 :min-length="2"
-                v-model="selectValue"
-                @select="selectHandler"
+                v-model="select1Value"
                 />    		
           </div>
         </div>
@@ -37,7 +36,7 @@
                 placeHolder="Please select a ZIP"
                 :list="getListFunction"
                 :min-length="2"
-                v-model="selectValue"
+                v-model="select2Value"
                 @select="listSelectHandler"
                 />    		
             </div>
@@ -86,7 +85,8 @@ export default {
 	data() {
   		return {
   			myList: RESULT_DATA,
-  			selectValue: null ,	
+        select1Value: null ,
+        select2Value: null,	
         listFunctionValue: null
   		}
   },

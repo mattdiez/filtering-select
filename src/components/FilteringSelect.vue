@@ -57,7 +57,7 @@ export default {
       return {
 			disabled: false,
 			textInput: null,
-			selectedItem: null,
+			//selectedItem: null,
 			hoveredItem: null,
 			suggestions: [],
 			renderSuggestions: false,
@@ -69,6 +69,10 @@ export default {
   	}, 
 	props: { // these are passed in
 		name: String,
+		value: {
+			type: [Object, String],
+			default: () => {}
+		},
 		valueAttr: {
 		    type: String,
 		    default: 'key'
@@ -99,6 +103,15 @@ export default {
 		}
  	}, 
 	computed: {
+		selectedItem: {
+			get() {
+				return this.value;
+			},
+			set(newValue) {
+				this.$emit('input', newValue)
+				this.$emit('select', newValue)
+			}
+		},
 		showSuggestions: function() {
 			return  this.suggestions.length > 0 || this.loadingResponse;
 		},
@@ -205,9 +218,7 @@ export default {
 
 		if (queryText) {
 			if (queryText.length < this.minLength) {
-        		if (this.renderSuggestions) {
-          			this.hideList()
-				}
+          		this.hideList()
 				return []
 			}
 
@@ -276,8 +287,6 @@ export default {
 		this.suggestions = [item];
 
 		this.hideList();
-
-		this.$emit('select', item)
 	},
 	letterProcess (item) {
 		var remoteText = item[this.labelAttr].split('')
@@ -327,16 +336,17 @@ export default {
 		return obj[this.valueAttr];
     },
 	
+
+	// model-back-and-forth
+	// test with vuelidate validators !!!
+	// test for form submit?
+	// template slot (!)
+	// paging of results (keys?)
+	// DONE
 	// disable research on arrow keys (!)
 	// implement debounce
 	// implement async query (pass as arg?)
 	// busy/loading message
-	// model-back-and-forth
-	// test with vuelidate validators !!!
-	// test for form submit?
-	// paging of results (keys?)
-	// template slot (!)
-	// DONE
 	// click off behavior (@blur or whatevr)      
 	// implement carat up/down      
 	// implement mouse select
