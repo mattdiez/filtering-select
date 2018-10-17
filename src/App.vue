@@ -23,6 +23,7 @@
                 name="zip" 
                 placeHolder="Please select a ZIP"
                 :list="myList"
+                :min-length="2"
                 v-model="selectValue"
                 @select="selectHandler"
                 />    		
@@ -35,6 +36,7 @@
                 name="zip" 
                 placeHolder="Please select a ZIP"
                 :list="getListFunction"
+                :min-length="2"
                 v-model="selectValue"
                 @select="listSelectHandler"
                 />    		

@@ -2,7 +2,7 @@
     <div>        
         		<!-- for debugging purposes -->		
 		
-        <div class="input-group-placeholder" v-bind:class="{ expanded : showSuggestions}">
+        <div class="input-group-placeholder" v-bind:class="{ expanded : renderSuggestions}">
             <input 
                 type="search" 
                 name="search" 
@@ -22,10 +22,10 @@
                 class="form-control text-input" 
                 />
            
-			<div class="dropdown" v-bind:class="{ show : showSuggestions}"
+			<div class="dropdown" v-bind:class="{ show : renderSuggestions}"
 					@mouseenter="hoverList(true)"
 					@mouseleave="hoverList(false)">
-                    <div class="dropdown-menu" v-bind:class="{ show : showSuggestions}" >
+                    <div class="dropdown-menu" v-bind:class="{ show : renderSuggestions}" >
                     	<li v-if="loadingResponse">
                     		<a class="dropdown-item">Loading...</a>
                     	</li>
@@ -81,6 +81,10 @@ export default {
 		placeHolder: {
 		    type: String,
 		    default: 'Please input a value'
+		},
+		minLength: {
+			type: Number,
+			default: 1
 		},
 		maxResults: {
 		    type: Number,
@@ -196,6 +200,12 @@ export default {
 		let matches = [];
 		let results = [];
 		if (queryText) {
+			if (queryText.length < this.minLength) {
+        		if (this.renderSuggestions) {
+          			this.hideList()
+          			return []
+				}
+			}
 			// Note: This is doing a "startsWith" instead of an "indexOf"
 			if (this.listIsRequest()) {
 				// do ajax debouncing 
@@ -235,7 +245,13 @@ export default {
 		this.$emit('select', null)
 	},
 	showList () {
-		this.renderSuggestions = true;
+		if (!this.renderSuggestions) {
+        	if (this.textInput && (this.textInput.length >= this.minLength)
+          		&& ((this.suggestions.length > 0) )) {
+				this.renderSuggestions = true
+          		this.$emit('show-list')
+        	}
+      	}
 	},
 	hideList () {
 		this.renderSuggestions = false;
