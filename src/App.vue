@@ -5,12 +5,12 @@
     
     <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.3/dist/css/bootstrap.min.css"/>
 
-<form >
+<form novalidate>
     <div class="container">
 		
       <div class="row">
         <div class="col-md-6">
-          <div>Selected Item: [{{select1Value}}]</div>
+          <div>Selected Value: [{{select1Value}}] - Selected Item: [{{selected1Item}}]</div>
         </div>
         <div class="col-md-6">
           <div>Selected Item: [{{select2Value}}]</div>
@@ -22,14 +22,15 @@
           <div class="form-group">
             <label class="form-label">Static Data Test</label>
             <FilteringSelect 
-                name="zip" 
+                ref="select1"
                 placeHolder="Please select a State"
                 :required="true"
                 :list="myList"
                 :autoselect-single="true"
                 :min-length="1"
-                :hasError="$v.select1Value.$error"
+                :has-error="$v.select1Value.$error"
                 v-model="$v.select1Value.$model"
+                @select="onSelect1Change"
                 >
                 <div class="invalid-feedback" v-if="!$v.select1Value.itemSelected">This field is required</div>
                 
@@ -49,11 +50,37 @@
                 :autoselect-single="true"
                 :min-length="2"
                 v-model="select2Value"
-                @select="listSelectHandler"
                 />    		
             </div>
         </div>
       </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div>Selected Value: [{{select3Value}}] - Selected Item: [{{selected3Item}}]</div>
+        </div>
+
+	    </div>      
+        <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label class="form-label">Simple Select Test</label>
+            <FilteringSelect 
+                ref="select3"
+                placeHolder="Please select a State"
+                :required="true"
+                :list="myList"
+                :autoselect-single="true"
+                :simple-select="true"
+                v-model="select3Value"
+                @select="onSelect3Change"
+                >                
+                <div slot="suggestion-item" slot-scope="{suggestion, highlightMatch}">                	
+            		<span v-html="highlightMatch(suggestion.label)"/> - {{suggestion.key}}					            						       
+            	</div>         
+			</FilteringSelect>
+          </div>
+        </div>
+       </div>
     </div>
 	<button type="submit">Click</button>
 	</form>
@@ -90,11 +117,14 @@ let RESULT_DATA = [
     { key: "ME", label: "Maine" },
     { key: "MA", label: "Massachusetts" },
     { key: "MI", label: "Michigan" },
+    { key: "MO", label: "Missouri" },
     { key: "MT", label: "Montaha" },
     { key: "NJ", label: "New Jersey" },
     { key: "NM", label: "New Mexico" },
     { key: "NY", label: "New York" },
     { key: "NC", label: "North Carolina" },
+    { key: "WA", label: "Washington" },
+    { key: "WV", label: "West Virginia" },
 ];
 
 export default {
@@ -105,10 +135,15 @@ export default {
   },
 	data() {
   		return {
-  			myList: RESULT_DATA,
-        select1Value: null ,
-        select2Value: null,	
-        listFunctionValue: null
+			myList: RESULT_DATA,
+        	select1Value: null ,
+        	selected1Item: null,
+        	
+			select2Value: null,
+			select2Item: null,	
+			listFunctionValue: null,
+			select3Value: 'CA',
+			selected3Item: null
   		}
   },
 	validations: {
@@ -127,12 +162,15 @@ export default {
         }, 2000);
 			});
 		},
-		selectHandler(item) {
-			this.selectValue = item;
-    },
-    listSelectHandler(item) {
-			this.listFunctionValue = item;
+		onSelect1Change(val) {
+			this.selected1Item = this.$refs.select1.selectedItem;
+		},
+		onSelect3Change(val) {			
+			this.selected3Item = this.$refs.select3.selectedItem;
 		}
+	},
+	mounted() {
+		this.select3Value = 'CA';
 	}
 }
 </script>
