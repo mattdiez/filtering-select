@@ -7,22 +7,23 @@
                 name="search" 
                 :placeholder="placeholderValue" 
                 autocomplete="off" 
-                required="required" 
+                
                 class="form-control placeholder" 
                 tabindex="-1"/>
 			
             <!-- //form-control text-input    -->
             <input :disabled="disabled" @click="emitClickInput" 
-                @keyup="keyUpListener"                
+                @keydown="keyDownListener"                
                 @focus="focusListener"
                 @blur="blurListener"
                 @input="inputListener"
                 v-model="textInput"
-                type="search" 
+                type="search"
+                :id="id" 
                 :name="name" 
                 placeholder="" 
                 autocomplete="off" 
-                required="required"
+                :required="required"
                 class="form-control text-input"                                
                 v-bind:class="{'is-invalid' : hasError}"
                 />
@@ -39,23 +40,22 @@
                     	</li>
                     		
                     	
-						<li v-if="suggestions.length > 0" v-for="(suggestion, index) in suggestions">
-							<slot name="suggestion-item" 
-								:suggestion="suggestion"
-								:selectedItem="selectedItem"
-								:hoveredItem="hoveredItem"
-								:valueProperty="valueProperty"
-								:highlightMatch="highlightMatch"
-								>							
-								<a class="dropdown-item" 
-									@click="suggestionClick(suggestion)"
-									v-html="highlightMatch(suggestion[labelAttr])"
-									:class="[
-										{
-	            							selected: selectedItem && (valueProperty(suggestion) == valueProperty(selectedItem)),
-	            							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
-	            						}]"></a>
-							</slot>	            						            				
+						<li v-if="suggestions.length > 0" v-for="(suggestion, index) in suggestions">																											
+							<a class="dropdown-item" 
+								@click="suggestionClick(suggestion)"									
+								:class="[
+									{
+            							selected: selectedItem && (valueProperty(suggestion) == valueProperty(selectedItem)),
+            							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
+            						}]">
+            					<slot
+            						:suggestion="suggestion"
+            						:highlightMatch="highlightMatch" 
+            						name="suggestion-item">
+            						<span v-html="highlightMatch(suggestion[labelAttr])"></span>
+            					</slot>		
+            				</a>
+							      						            				
                         </li>
                         
 						<li v-if="(suggestions.length == 0) && !loadingResponse">
@@ -71,7 +71,7 @@
 <script>
 
 export default {
-  	name: 'filtering-select',
+  	name: 'FilteringSelect',
 	data() {
       return {
 			disabled: false,
@@ -86,6 +86,10 @@ export default {
 		}
   	}, 
 	props: { // these are passed in
+		id: {
+			type: String,
+			default: 'filtering-select-id'
+		},	
 		name: {
 			type: String,
 			default: 'filtering-select-name'
@@ -102,7 +106,7 @@ export default {
 		    type: String,
 		    default: 'label'
 		},
-		placeHolder: {
+		placeholder: {
 		    type: String,
 		    default: 'Please input a value'
 		},
@@ -129,6 +133,10 @@ export default {
 		hasError: {
 			type: Boolean,
 			default: null
+		},
+		required: {
+			type: Boolean,
+			default: false
 		}
  	}, 
 	computed: {
@@ -156,7 +164,7 @@ export default {
 	            // no suggestions shown, but something has been typed
 	            return '';
 	        } else {
-	            return this.placeHolder;
+	            return this.placeholder;
 	        }
 	    },
 		hoveredIndex () {
@@ -167,7 +175,7 @@ export default {
 	emitClickInput () {
 		// TODO: implement this
 	},
-	keyUpListener (event) {
+	keyDownListener (event) {
 		this.typingForward = true;
 
 		if (event.code == 'Backspace') {
@@ -175,10 +183,12 @@ export default {
 			this.typingForward = false;
 		}
 		
-		if (event.code == 'Enter') {
-			if (this.suggestions.length > 0) {
-				this.select(this.suggestions[this.hoveredIndex != -1 ? this.hoveredIndex : 0]);
+		if (event.code == 'Enter') {			
+			if ((this.renderSuggestions) && (this.suggestions.length > 0) ){								
+				event.preventDefault();
+				this.select(this.suggestions[this.hoveredIndex != -1 ? this.hoveredIndex : 0]);				
 			}
+
 		}
 		
 		this.moveSelection(event);
