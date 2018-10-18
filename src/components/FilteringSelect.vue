@@ -6,8 +6,7 @@
                 type="search" 
                 name="search" 
                 :placeholder="placeholderValue" 
-                autocomplete="off" 
-                
+                autocomplete="off"                
                 class="form-control placeholder" 
                 tabindex="-1"/>
 			
@@ -71,18 +70,19 @@
 <script>
 
 export default {
-  	name: 'FilteringSelect',
+  	name: 'FilteringSelect',  	
 	data() {
       return {
 			disabled: false,
-			textInput: null,
+			textInput: null,			
 			hoveredItem: null,
 			suggestions: [],
 			renderSuggestions: false,
 			isOverList: false,
 			loadingResponse: false,
 			canSend: true,
-			typingForward: true
+			typingForward: true,
+			selectedItem: null			
 		}
   	}, 
 	props: { // these are passed in
@@ -98,6 +98,10 @@ export default {
 			type: [Object, String],
 			default: () => {}
 		},
+		valueItem: {
+			type: [Object, String],
+			default: () => {}
+		},				
 		valueAttr: {
 		    type: String,
 		    default: 'key'
@@ -137,18 +141,22 @@ export default {
 		required: {
 			type: Boolean,
 			default: false
+		},
+		simpleSelect: {
+			type: Boolean,
+			default: false
 		}
  	}, 
-	computed: {
-		selectedItem: {
+	computed: {		
+		rawValue: {
 			get() {
 				return this.value;
 			},
 			set(newValue) {
 				this.$emit('input', newValue)
 				this.$emit('select', newValue)
-			}
-		},
+			}		
+		},		
 		showSuggestions: function() {
 			return  this.suggestions.length > 0 || this.loadingResponse;
 		},
@@ -171,6 +179,11 @@ export default {
 			return this.suggestions.findIndex(el => this.hoveredItem && (this.valueProperty(this.hoveredItem) == this.valueProperty(el)))
 		},    
 	},
+	watch: {
+		selectedItem(newVal) {
+			this.rawValue = newVal ? newVal[this.valueAttr] : null;			
+		},
+	},
   methods: {
 	emitClickInput () {
 		// TODO: implement this
@@ -178,12 +191,12 @@ export default {
 	keyDownListener (event) {
 		this.typingForward = true;
 
-		if (event.code == 'Backspace') {
+		if (['Delete', 'Backspace'].indexOf(event.code) != -1) {
 			this.clearSelection();
 			this.typingForward = false;
 		}
 		
-		if (event.code == 'Enter') {			
+		if (['NumpadEnter', 'Enter'].indexOf(event.code) != -1) {			
 			if ((this.renderSuggestions) && (this.suggestions.length > 0) ){								
 				event.preventDefault();
 				this.select(this.suggestions[this.hoveredIndex != -1 ? this.hoveredIndex : 0]);				
@@ -227,8 +240,11 @@ export default {
         return this.suggestions
       }
     },
-	focusListener () {
-		this.showList();
+	async focusListener () {
+		if (this.suggestions.length === 0) {
+			await this.research()
+		}
+		this.showList()		
 	},
 	hoverList (isOverList) {
 		this.isOverList = isOverList
@@ -246,10 +262,10 @@ export default {
 	async getSuggestions () {
 		let matches = [];
 		let results = [];
-		let queryText = this.textInput;
-
+		let queryText = this.textInput;		
+		
 		if (queryText) {
-			if (queryText.length < this.minLength) {
+			if ((queryText) && (queryText.length < this.minLength)) {
           		this.hideList()
 				return []
 			}
@@ -279,6 +295,11 @@ export default {
 		} else {
 			// clear out selected item
 			this.clearSelection();
+			
+			if (!this.listIsRequest()) {
+				// not a request? just a list?
+				matches = this.list.filter(e => true);
+			}
 		}
 		// consider paging at some time
 		return matches.splice(0, this.maxResults);
@@ -299,7 +320,9 @@ export default {
 	},
 	showList () {
 		if (!this.renderSuggestions) {
-			if (this.textInput && (this.textInput.length >= this.minLength)) {
+			if (
+				(this.textInput && (this.textInput.length >= this.minLength))
+				|| (this.simpleSelect)) {
 				this.renderSuggestions = true
 				this.$emit('show-list')
         	}
@@ -374,9 +397,12 @@ export default {
 		return obj[this.valueAttr];
     },
 	
-	// test for form submit?
-	// template slot (!)
 	// paging of results (keys?)
+  },
+  mounted() {
+  	if ((!this.listIsRequest()) && (this.value)) {
+  		this.select(this.list.filter(item => this.valueProperty(item) === this.value)[0])
+  	}
   }
 }
 </script>
