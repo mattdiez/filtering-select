@@ -5,8 +5,9 @@
     
     <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.3/dist/css/bootstrap.min.css"/>
 
+<form >
     <div class="container">
-
+		
       <div class="row">
         <div class="col-md-6">
           <div>Selected Item: [{{select1Value}}]</div>
@@ -23,6 +24,7 @@
             <FilteringSelect 
                 name="zip" 
                 placeHolder="Please select a State"
+                :required="true"
                 :list="myList"
                 :autoselect-single="true"
                 :min-length="1"
@@ -31,18 +33,8 @@
                 >
                 <div class="invalid-feedback" v-if="!$v.select1Value.itemSelected">This field is required</div>
                 
-                <div slot="suggestion-item" slot-scope="{suggestion, selectedItem, hoveredItem, valueProperty, highlightMatch}">
-                	
-							<a class="dropdown-item" 
-								@click="suggestionClick(suggestion)"								
-								:class="[
-									{
-            							selected: selectedItem && (valueProperty(suggestion) == valueProperty(selectedItem)),
-            							hover: hoveredItem && (valueProperty(hoveredItem) == valueProperty(suggestion))
-            						}]">
-            					<span v-html="highlightMatch(suggestion.label)"/> - {{suggestion.key}}	
-            				</a>
-					            						       
+                <div slot="suggestion-item" slot-scope="{suggestion, highlightMatch}">                	
+            		<span v-html="highlightMatch(suggestion.label)"/> - {{suggestion.key}}					            						       
             	</div>         
 			</FilteringSelect>
           </div>
@@ -63,7 +55,8 @@
         </div>
       </div>
     </div>
-
+	<button type="submit">Click</button>
+	</form>
 	
   </div>
 </template>
