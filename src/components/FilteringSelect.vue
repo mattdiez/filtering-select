@@ -6,8 +6,7 @@
             <input 
                 type="search" 
                 name="search" 
-                :placeholder="placeholderValue" 
-                autocomplete="off"                
+                :placeholder="placeholderValue"          
                 class="form-control placeholder" 
                 tabindex="-1"/>
 			
@@ -24,7 +23,6 @@
                 :id="id" 
                 :name="name" 
                 placeholder="" 
-                autocomplete="off" 
                 :required="required"
                 :tabindex="tabindex"
                 class="form-control text-input"                                
@@ -74,7 +72,7 @@
 <script>
 
 export default {
-  	name: 'FilteringSelect',  	
+  	name: 'filtering-select',  	
 	data() {
       return {
 			disabled: false,
