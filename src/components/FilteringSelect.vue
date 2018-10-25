@@ -1,11 +1,12 @@
 <template>
 	<!-- TODO: paging of results (keys?) -->
     <div>        
-        <!-- for debugging purposes -->		
+        <!-- for debugging purposes -->
+        		
         <div class="input-group-placeholder"  v-bind:class="{ expanded : renderSuggestions, 'is-invalid' : hasError}">        	
             <input 
-                type="search" 
-                name="search" 
+                type="text" 
+                name="none" 
                 :placeholder="placeholderValue"          
                 class="form-control placeholder" 
                 tabindex="-1"/>
@@ -18,8 +19,10 @@
                 @focus="focusListener"
                 @blur="blurListener"
                 @input="inputListener"
+                @compositionend="evt => inCompositionMode = false"
+                @compositionstart="evt => inCompositionMode = true"
                 v-model="textInput"
-                type="search"
+                type="text"
                 :id="id" 
                 :name="name" 
                 placeholder="" 
@@ -85,7 +88,8 @@ export default {
 			canSend: true,
 			typingForward: true,
 			selectedValue: this.value, 
-			selectedItem: null	
+			selectedItem: null,
+			inCompositionMode: null /* event for chrome on mobile */	
 		}
   	}, 
 	props: { // these are passed in
@@ -195,10 +199,10 @@ export default {
 	methods: {
 		emitClickInput () {
 			// TODO: implement this
-		},
+		},		
 		keyDownListener (event) {
 			this.typingForward = true;
-
+																	
 			if (['Delete', 'Backspace'].indexOf(event.code) != -1) {
 				this.clearSelection();
 				this.typingForward = false;
@@ -213,22 +217,38 @@ export default {
 		
 			this.moveSelection(event);
 		},
-		inputListener() {		
+		inputListener(event) {			
+					
+			if (this.inCompositionMode == true) {
+				// https://github.com/vuejs/vue/issues/8231	
+				if (event.target && this.textInput) {
+					if (event.target.value.length < this.textInput.length) {
+						this.typingForward = false;
+						this.clearSelection();
+					}
+				}
+				this.textInput = event.target.value;
+							
+			}
+			
 			if (this.selectedItem) {				
 				this.clearSelection();
 			}
-			if (this.debounce) {
+			if (this.listIsRequest() && this.debounce) {
 				clearTimeout(this.timeoutInstance)
-				this.timeoutInstance = setTimeout(this.research, this.debounce)
+				let app = this;
+				this.timeoutInstance = setTimeout(function() { 
+					app.research(queryText); 
+				}, this.debounce)
 			} else {
-				this.research()
-			}	
-		},
-    	async research () {
+				this.research(this.textInput)
+			}			
+		}, 
+    	async research (queryText) {    		
 			try {
         		if (this.canSend) {
           			this.canSend = false
-          			this.$set(this, 'suggestions', await this.getSuggestions())
+          			this.$set(this, 'suggestions', await this.getSuggestions(queryText))
         		}
       		}
       		catch (e) {
@@ -239,9 +259,11 @@ export default {
         		this.canSend = true
 				this.showList()
 		
-				// Autoselect first/only item
-				if ((this.suggestions.length === 1) && (this.typingForward) && this.autoselectSingle) {
-					this.select(this.suggestions[0], true)
+				// Autoselect first/only item				
+				if ((this.suggestions.length === 1) && (this.typingForward) && this.autoselectSingle) {									
+					this.select(this.suggestions[0], true)				
+					
+					// this.$emit('compositionend')
 				}
 	        	return this.suggestions
       		}
@@ -252,7 +274,7 @@ export default {
 			if (this.suggestions.length === 0) {
 				await this.research()
 			}
-			this.showList()		
+			this.showList()
 		},
 		hoverList (isOverList) {
 			this.isOverList = isOverList
@@ -265,12 +287,11 @@ export default {
 					this.clearSelection();
 				}							
 				this.hideList();
-			}
+			}			
 		}, 
-		async getSuggestions () {
+		async getSuggestions (queryText) {
 			let matches = [];
-			let results = [];
-			let queryText = this.textInput;		
+			let results = [];			
 			
 			if (queryText) {
 				if ((queryText) && (queryText.length < this.minLength)) {
@@ -291,12 +312,6 @@ export default {
 					results = this.list;
 				}	
 	
-				/*	
-				Note: This is doing a "startsWith" instead of an "indexOf"	
-				matches = results.filter(e => 
-					e[this.labelAttr].toLowerCase().startsWith(queryText.toLowerCase()) 
-				);
-				*/
 				matches = results.filter(e => 
 					e[this.labelAttr].toLowerCase().indexOf(queryText.toLowerCase()) != -1 
 				);			
@@ -348,13 +363,18 @@ export default {
 		},
 		select (item, interactive = false) {
 			this.selectedItem = item;
-			this.textInput = item[this.labelAttr];		
-	
+						
+			this.textInput = item[this.labelAttr];
+			
 			// reduce suggestion list to selected val
 			this.suggestions = [item];
+			
 	
 			this.hideList();
-			if (interactive) {
+			if (interactive) {			
+				if (this.inCompositionMode) {
+					event.target.value = this.textInput;				
+				}								
 				this.$emit('select', this.selectedValue)
 			}
 		},
@@ -413,6 +433,9 @@ export default {
 		if ((!this.listIsRequest()) && (this.value)) {
 			this.select(this.list.find(item => this.valueProperty(item) === this.value))
 		}
+	},
+	updated() {
+		
 	}
 }
 </script>
