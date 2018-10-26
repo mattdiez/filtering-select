@@ -157,11 +157,12 @@ export default {
 	},  
   	methods: {
 		getListFunction(text) {
+      let count = 0;
 			return new Promise(function(resolve, reject) {
         setTimeout(function(){
           // simulate a slooooow server
           resolve(RESULT_DATA);
-        }, 1000);
+        }, count);
 			});
 		},
 		onSelect1Change(val) {

@@ -22,7 +22,7 @@
                 @input="inputListener"
                 @compositionend="evt => inCompositionMode = false"
                 @compositionstart="evt => inCompositionMode = true"
-                type="text"
+                :type="type"
                 :id="id" 
                 :name="name" 
                 placeholder="" 
@@ -133,7 +133,7 @@ export default {
 		},
 		debounce: {
 			type: Number,
-			default: 350
+			default: 10
 		},
 		autoselectSingle: {
 			type: Boolean,
@@ -154,6 +154,10 @@ export default {
 		tabindex: {
 			type: Number,
 			default: 0
+		},
+		type: {
+			type: String,
+			default: 'text'
 		}
  	}, 
 	computed: {		
@@ -258,7 +262,7 @@ export default {
         		this.canSend = true
 				this.showList()
 		
-				// Autoselect first/only item				
+				// Autoselect first/only item			
 				if ((this.suggestions.length === 1) && (this.typingForward) && this.autoselectSingle) {									
 					this.select(this.suggestions[0], true)
 				}
@@ -374,10 +378,15 @@ export default {
 			let label = item[this.labelAttr];
 
 			this.$emit('input', value)
-			if (this.$refs.inputBox)
-				this.$refs.inputBox.value = label;
 			this.textInput = label;
 			
+			if (this.$refs.inputBox) {
+				this.$refs.inputBox.value = this.textInput;
+				if (this.inCompositionMode) {
+					// Deal with oddball case and just blur the input
+					this.$refs.inputBox.blur();
+				}
+			}
 
 			if (interactive) {			
 				this.$emit('select', this.textInput)
@@ -434,13 +443,11 @@ export default {
 		
 	},
 	mounted() {
-		
 		if ((!this.listIsRequest()) && (this.value)) {
 			let item = this.list.find(item => this.valueProperty(item) === this.value);
 			if (item)
 				this.select(item)
 		}
-		
 	},
 }
 </script>
