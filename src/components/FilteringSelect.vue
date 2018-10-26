@@ -3,6 +3,7 @@
     <div>        
         <!-- for debugging purposes -->
         		
+		<div>[{{textInput}}] -- [{{selectedValue}}] - [[{{targetValue}}]</div>
         <div class="input-group-placeholder"  v-bind:class="{ expanded : renderSuggestions, 'is-invalid' : hasError}">        	
             <input 
                 type="text" 
@@ -21,13 +22,13 @@
                 @input="inputListener"
                 @compositionend="evt => inCompositionMode = false"
                 @compositionstart="evt => inCompositionMode = true"
-                v-model="textInput"
                 type="text"
                 :id="id" 
                 :name="name" 
                 placeholder="" 
                 :required="required"
                 :tabindex="tabindex"
+				ref="inputBox"
                 class="form-control text-input"                                
                 v-bind:class="{'is-invalid' : hasError}"
                 />
@@ -89,7 +90,8 @@ export default {
 			typingForward: true,
 			selectedValue: this.value, 
 			selectedItem: null,
-			inCompositionMode: null /* event for chrome on mobile */	
+			inCompositionMode: null ,/* event for chrome on mobile */
+			targetValue: null	
 		}
   	}, 
 	props: { // these are passed in
@@ -178,23 +180,29 @@ export default {
 		},    
 	},
 	watch: {
-		value() {
-			// watch changes in the v-model property			
+		value: {
+			// watch changes in the v-model property	
+			/*		
 			if ((!this.listIsRequest()) && (this.value)) {
 				// TODO: This is called in created() AND here, maybe merge
-  				this.select(this.list.find(item => this.valueProperty(item) === this.value))  				
+				let item = this.list.find(item => this.valueProperty(item) === this.value)
+				if (item)
+  					this.select(item)  				
   			} else {
   				this.selectedValue = this.value;
-  			}
+			  }*/
+			handler(current) {
+				this.selectedValue = current;
+			},
+			immediate: true
 		},
 		selectedItem(newItem) {
 			// watch changes on suggestion select/click
-			this.selectedValue = newItem ? newItem[this.valueAttr] : null;			
+			this.selectedValue = newItem ? newItem[this.valueAttr] : null;
 		},
 		selectedValue(newValue) {
-			// trigger 'input' event to update v-model
 			this.$emit('input', this.selectedValue)
-		}
+		},
 	},
 	methods: {
 		emitClickInput () {
@@ -204,7 +212,6 @@ export default {
 			this.typingForward = true;
 																	
 			if (['Delete', 'Backspace'].indexOf(event.code) != -1) {
-				this.clearSelection();
 				this.typingForward = false;
 			}
 		
@@ -218,37 +225,38 @@ export default {
 			this.moveSelection(event);
 		},
 		inputListener(event) {			
-					
-			if (this.inCompositionMode == true) {
-				// https://github.com/vuejs/vue/issues/8231	
-				if (event.target && this.textInput) {
-					if (event.target.value.length < this.textInput.length) {
-						this.typingForward = false;
-						this.clearSelection();
-					}
-				}
-				this.textInput = event.target.value;
-							
-			}
+			const targetValue = !event.target ? event : event.target.value
 			
-			if (this.selectedItem) {				
+			this.targetValue = targetValue;
+			
+			if (this.inCompositionMode) {
+				// in composition mode under google chrome on mobile
+				// https://github.com/vuejs/vue/issues/8231	
+				this.typingForward = true;
+				if (targetValue && this.textInput && (targetValue.length < this.textInput.length)) {
+					this.typingForward = false;
+				}
+			}
+
+			if (this.textInput === targetValue) { return }
+		
+			this.textInput = targetValue
+			  
+			if (this.selectedItem) {		
 				this.clearSelection();
 			}
 			if (this.listIsRequest() && this.debounce) {
 				clearTimeout(this.timeoutInstance)
-				let app = this;
-				this.timeoutInstance = setTimeout(function() { 
-					app.research(queryText); 
-				}, this.debounce)
+				this.timeoutInstance = setTimeout(this.research, this.debounce)
 			} else {
-				this.research(this.textInput)
+				this.research()
 			}			
 		}, 
-    	async research (queryText) {    		
+    	async research () {    		
 			try {
         		if (this.canSend) {
           			this.canSend = false
-          			this.$set(this, 'suggestions', await this.getSuggestions(queryText))
+          			this.$set(this, 'suggestions', await this.getSuggestions())
         		}
       		}
       		catch (e) {
@@ -261,9 +269,7 @@ export default {
 		
 				// Autoselect first/only item				
 				if ((this.suggestions.length === 1) && (this.typingForward) && this.autoselectSingle) {									
-					this.select(this.suggestions[0], true)				
-					
-					// this.$emit('compositionend')
+					this.select(this.suggestions[0], true)
 				}
 	        	return this.suggestions
       		}
@@ -283,16 +289,18 @@ export default {
 			if (!this.isOverList) {
 				if (!this.selectedItem) {
 					this.textInput = null;
+					this.$refs.inputBox.value = null;
 					this.clearSuggestions();
 					this.clearSelection();
 				}							
 				this.hideList();
 			}			
 		}, 
-		async getSuggestions (queryText) {
+		async getSuggestions () {
 			let matches = [];
 			let results = [];			
-			
+			let queryText = this.textInput;
+
 			if (queryText) {
 				if ((queryText) && (queryText.length < this.minLength)) {
 	          		this.hideList()
@@ -338,8 +346,9 @@ export default {
 			const texts = query.split(/[\s-_/\\|\.]/gm).filter(t => !!t) || [''];
 			return result.replace(new RegExp('(.*?)(' + texts.join('|') + ')(.*?)','gi'), '$1<b>$2</b>$3');
 	    },
-		clearSelection () {		
-			this.selectedItem = null;	
+		clearSelection () {
+			this.selectedItem = null;
+			this.$emit('select', null)
 		},
 		showList () {
 			if (!this.renderSuggestions) {
@@ -363,19 +372,23 @@ export default {
 		},
 		select (item, interactive = false) {
 			this.selectedItem = item;
-						
-			this.textInput = item[this.labelAttr];
 			
-			// reduce suggestion list to selected val
+			// reduce suggestion list to selected value
 			this.suggestions = [item];
 			
-	
 			this.hideList();
+			
+			// TODO: Move this to a watch/listener event?
+			let value = item[this.valueAttr];
+			let label = item[this.labelAttr];
+
+			this.$emit('input', value)
+			this.$refs.inputBox.value = label;
+			this.textInput = label;
+			
+
 			if (interactive) {			
-				if (this.inCompositionMode) {
-					event.target.value = this.textInput;				
-				}								
-				this.$emit('select', this.selectedValue)
+				this.$emit('select', this.textInput)
 			}
 		},
 		letterProcess (item) {
@@ -391,7 +404,6 @@ export default {
 			}
 		},
 		moveSelection (e) {
-			
 			if ((e.code == 'ArrowDown') || (e.code == 'ArrowUp')) {
 				e.preventDefault()
 				this.showList()
@@ -424,19 +436,17 @@ export default {
 			return typeof this.list === 'function'
 		},    
 	    valueProperty (obj) {
-			//return this.getPropertyByAttribute(obj, this.valueAttribute)
 			return obj[this.valueAttr];
 	    }
 		
 	},
-	created() {
+	mounted() {
 		if ((!this.listIsRequest()) && (this.value)) {
-			this.select(this.list.find(item => this.valueProperty(item) === this.value))
+			let item = this.list.find(item => this.valueProperty(item) === this.value);
+			if (item)
+				this.select(item)
 		}
 	},
-	updated() {
-		
-	}
 }
 </script>
 
