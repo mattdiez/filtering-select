@@ -44,7 +44,7 @@
             <div class="form-group">
             <label class="form-label">List Function Test</label>
             <FilteringSelect 
-                name="zip" 
+                name="crudbucks" 
                 placeHolder="Please select a State"
                 :list="getListFunction"
                 :autoselect-single="true"
@@ -83,6 +83,7 @@
        </div>
     </div>
 	<button type="submit">Click</button>
+  <button type="submit" @click.prevent="select3Value='KY'">Set KY</button>
 	</form>
 	
   </div>
@@ -123,6 +124,7 @@ let RESULT_DATA = [
     { key: "NM", label: "New Mexico" },
     { key: "NY", label: "New York" },
     { key: "NC", label: "North Carolina" },
+    { key: "VA", label: "Virginia" },
     { key: "WA", label: "Washington" },
     { key: "WV", label: "West Virginia" },
 ];
@@ -159,7 +161,7 @@ export default {
         setTimeout(function(){
           // simulate a slooooow server
           resolve(RESULT_DATA);
-        }, 2000);
+        }, 1000);
 			});
 		},
 		onSelect1Change(val) {

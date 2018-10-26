@@ -182,17 +182,16 @@ export default {
 	watch: {
 		value: {
 			// watch changes in the v-model property	
-			/*		
-			if ((!this.listIsRequest()) && (this.value)) {
-				// TODO: This is called in created() AND here, maybe merge
-				let item = this.list.find(item => this.valueProperty(item) === this.value)
-				if (item)
-  					this.select(item)  				
-  			} else {
-  				this.selectedValue = this.value;
-			  }*/
 			handler(current) {
-				this.selectedValue = current;
+				//this.selectedValue = current;
+				
+				if ((!this.listIsRequest()) && (current)) {
+					let item = this.list.find(item => this.valueProperty(item) === current)
+					if (item)
+						  this.select(item, true)  
+				} else {
+					this.selectedValue = current;
+				}
 			},
 			immediate: true
 		},
@@ -209,12 +208,6 @@ export default {
 			// TODO: implement this
 		},		
 		keyDownListener (event) {
-			this.typingForward = true;
-																	
-			if (['Delete', 'Backspace'].indexOf(event.code) != -1) {
-				this.typingForward = false;
-			}
-		
 			if (['NumpadEnter', 'Enter'].indexOf(event.code) != -1) {			
 				if ((this.renderSuggestions) && (this.suggestions.length > 0) ){								
 					event.preventDefault();
@@ -224,18 +217,16 @@ export default {
 		
 			this.moveSelection(event);
 		},
-		inputListener(event) {			
+		inputListener(event) {		
+			// https://github.com/vuejs/vue/issues/8231		
 			const targetValue = !event.target ? event : event.target.value
 			
 			this.targetValue = targetValue;
-			
-			if (this.inCompositionMode) {
-				// in composition mode under google chrome on mobile
-				// https://github.com/vuejs/vue/issues/8231	
-				this.typingForward = true;
-				if (targetValue && this.textInput && (targetValue.length < this.textInput.length)) {
-					this.typingForward = false;
-				}
+
+			this.typingForward = true;
+
+			if (targetValue && this.textInput && (targetValue.length < this.textInput.length)) {
+				this.typingForward = false;
 			}
 
 			if (this.textInput === targetValue) { return }
@@ -383,7 +374,8 @@ export default {
 			let label = item[this.labelAttr];
 
 			this.$emit('input', value)
-			this.$refs.inputBox.value = label;
+			if (this.$refs.inputBox)
+				this.$refs.inputBox.value = label;
 			this.textInput = label;
 			
 
@@ -437,15 +429,18 @@ export default {
 		},    
 	    valueProperty (obj) {
 			return obj[this.valueAttr];
-	    }
+		},
+		
 		
 	},
 	mounted() {
+		
 		if ((!this.listIsRequest()) && (this.value)) {
 			let item = this.list.find(item => this.valueProperty(item) === this.value);
 			if (item)
 				this.select(item)
 		}
+		
 	},
 }
 </script>
