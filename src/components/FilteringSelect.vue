@@ -3,7 +3,6 @@
     <div>        
         <!-- for debugging purposes -->
         		
-		<div>[{{textInput}}] -- [{{selectedValue}}] - [[{{targetValue}}]</div>
         <div class="input-group-placeholder"  v-bind:class="{ expanded : renderSuggestions, 'is-invalid' : hasError}">        	
             <input 
                 type="text" 
