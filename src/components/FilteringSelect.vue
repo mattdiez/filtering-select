@@ -186,14 +186,25 @@ export default {
 		value: {
 			// watch changes in the v-model property	
 			handler(current) {
-				//this.selectedValue = current;
 				
-				if ((!this.listIsRequest()) && (current)) {
-					let item = this.list.find(item => this.valueProperty(item) === current)
-					if (item)
-						  this.select(item, true)  
-				} else {
-					this.selectedValue = current;
+				if (this._isMounted) {
+					if (!this.listIsRequest()) { 
+						
+						let item = current ? this.list.find(item => this.valueProperty(item) === current) : null;
+						
+						this.select(item, true)
+						/*
+						if (item) {						
+							this.select(item, true)
+						}
+						else {
+							this.clearSuggestions();
+							this.clearSelection();
+						}*/
+							  
+					} else {
+						this.selectedValue = current;
+					}
 				}
 			},
 			immediate: true
@@ -368,13 +379,13 @@ export default {
 			this.selectedItem = item;
 			
 			// reduce suggestion list to selected value
-			this.suggestions = [item];
+			this.suggestions = item ? [item] : [];
 			
 			this.hideList();
 			
 			// TODO: Move this to a watch/listener event?
-			let value = item[this.valueAttr];
-			let label = item[this.labelAttr];
+			let value = item ? item[this.valueAttr] : null;
+			let label = item ? item[this.labelAttr] : null;
 
 			this.$emit('input', value)
 			this.textInput = label;
