@@ -83,7 +83,9 @@
        </div>
     </div>
 	<button type="submit">Click</button>
-  <button type="submit" @click.prevent="select3Value='KY'">Set KY</button>
+	
+  	<button type="submit" @click.prevent="select3Value='KY'">Set KY</button>
+  	<button type="submit" @click.prevent="select3Value=null">Null Out KY</button>
 	</form>
 	
   </div>
